@@ -22,6 +22,8 @@ import sys
 from datetime import date, datetime, timedelta
 from zoneinfo import ZoneInfo
 
+import time
+
 import requests
 
 logging.basicConfig(level=logging.INFO, format="%(levelname)s: %(message)s")
@@ -37,35 +39,33 @@ DATA_DIR = os.path.join(os.path.dirname(__file__), "..", "data", "daily")
 
 
 def fetch_irrigation(target: date, token: str, pw_hash: str) -> dict | None:
+    # /jl returns a JSON list directly: [[station, program, duration_sec, end_ts], ...]
+    # OTC intermittently drops the device connection and returns 404; retry up to 3 times.
     base = OTC_BASE.format(token=token)
     start_dt = datetime(target.year, target.month, target.day, 0, 0, 0, tzinfo=ARIZONA)
     end_dt = start_dt + timedelta(days=1) - timedelta(seconds=1)
+    params = {
+        "pw": pw_hash,
+        "start": int(start_dt.timestamp()),
+        "end": int(end_dt.timestamp()),
+    }
 
-    try:
-        r_names = requests.get(
-            f"{base}/js", params={"pw": pw_hash}, timeout=20
-        )
-        r_names.raise_for_status()
-        snames = r_names.json().get("snames", [])
+    last_exc: Exception | None = None
+    for attempt in range(1, 4):
+        try:
+            r = requests.get(f"{base}/jl", params=params, timeout=30)
+            r.raise_for_status()
+            logs = r.json()
+            log.info("OpenSprinkler: fetched %d log entries (attempt %d)", len(logs), attempt)
+            return {"logs": logs}
+        except Exception as exc:
+            last_exc = exc
+            if attempt < 3:
+                log.warning("OpenSprinkler attempt %d failed: %s — retrying in 15s", attempt, exc)
+                time.sleep(15)
 
-        r_log = requests.get(
-            f"{base}/jl",
-            params={
-                "pw": pw_hash,
-                "start": int(start_dt.timestamp()),
-                "end": int(end_dt.timestamp()),
-            },
-            timeout=20,
-        )
-        r_log.raise_for_status()
-        logs = r_log.json().get("logs", [])
-
-        log.info("OpenSprinkler: fetched %d log entries, %d stations", len(logs), len(snames))
-        return {"station_names": snames, "logs": logs}
-
-    except Exception as exc:
-        log.warning("OpenSprinkler fetch failed: %s", exc)
-        return None
+    log.warning("OpenSprinkler fetch failed after 3 attempts: %s", last_exc)
+    return None
 
 
 def fetch_weather(target: date, api_key: str) -> dict | None:

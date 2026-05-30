@@ -46,7 +46,7 @@ def parse_zone_durations(log_entries: list) -> dict[int, int]:
     for entry in log_entries:
         if len(entry) < 3:
             continue
-        sid, dur = int(entry[1]), int(entry[2])
+        sid, dur = int(entry[0]), int(entry[2])
         totals[sid] = totals.get(sid, 0) + dur
     return totals
 
@@ -75,16 +75,20 @@ def main() -> None:
     records = load_daily_records()
     print(f"Loaded {len(records)} daily records from {SEASON_START} onward.")
 
-    # Discover all station indices and their controller-reported names
+    # /jn (station names) is not supported by this firmware via OTC; labels come from
+    # zone_config.json. Discover active station indices from log entries instead.
     station_names: dict[int, str] = {}
+    all_indices_set: set[int] = set()
     for r in records:
         irr = r.get("irrigation")
         if irr:
-            for i, name in enumerate(irr.get("station_names", [])):
-                if name and i not in station_names:
-                    station_names[i] = name
+            for entry in irr.get("logs", []):
+                if len(entry) >= 1:
+                    sid = int(entry[0])
+                    if sid < 64:  # exclude special indices (e.g. 99 = master/sensor)
+                        all_indices_set.add(sid)
 
-    all_indices = sorted(station_names.keys())
+    all_indices = sorted(all_indices_set)
 
     def zone_label(idx: int) -> str:
         return label_overrides.get(str(idx), station_names.get(idx, f"Zone {idx + 1}"))

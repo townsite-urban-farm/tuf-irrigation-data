@@ -1,7 +1,10 @@
 {
-  "_note": "Set grant_zone to the 0-based station index of 'Farm: outside'. Run scripts/fetch_log.py once and inspect data/daily/YYYY-MM-DD.json to see the station_names list and identify the correct index. Labels override the names reported by the controller; omit an entry to use the controller name.",
-  "grant_zone": 0,
+  "_note": "Station indices are 0-based. Labels override controller names (which are unavailable via OTC API). grant_zone controls which zone is highlighted by default on the water-usage page.",
+  "grant_zone": 3,
   "labels": {
-    "0": "UA advancing markets"
+    "0": "East landscaping",
+    "1": "West landscaping",
+    "2": "Farm: greenhouse",
+    "3": "Farm: outdoor"
   }
 }
