@@ -1,15 +1,66 @@
 {
   "last_updated": "2026-05-30",
   "season_start": "2026-05-25",
-  "grant_zone": 0,
-  "zones": [],
-  "season_totals": [],
+  "grant_zone": 3,
+  "zones": [
+    {
+      "index": 1,
+      "label": "West landscaping"
+    },
+    {
+      "index": 2,
+      "label": "Farm: greenhouse"
+    },
+    {
+      "index": 3,
+      "label": "Farm: outdoor"
+    }
+  ],
+  "season_totals": [
+    {
+      "index": 1,
+      "label": "West landscaping",
+      "duration_min": 240.0,
+      "duration_hhmm": "4:00"
+    },
+    {
+      "index": 2,
+      "label": "Farm: greenhouse",
+      "duration_min": 350.0,
+      "duration_hhmm": "5:50"
+    },
+    {
+      "index": 3,
+      "label": "Farm: outdoor",
+      "duration_min": 135.0,
+      "duration_hhmm": "2:15"
+    }
+  ],
   "weekly": [
     {
       "week": "2026-W22",
       "week_start": "2026-05-25",
       "week_end": "2026-05-31",
-      "zones": [],
+      "zones": [
+        {
+          "index": 1,
+          "label": "West landscaping",
+          "duration_min": 240.0,
+          "duration_hhmm": "4:00"
+        },
+        {
+          "index": 2,
+          "label": "Farm: greenhouse",
+          "duration_min": 350.0,
+          "duration_hhmm": "5:50"
+        },
+        {
+          "index": 3,
+          "label": "Farm: outdoor",
+          "duration_min": 135.0,
+          "duration_hhmm": "2:15"
+        }
+      ],
       "weather": {
         "precip_total_in": 0.07,
         "precip_display": "0.07",
