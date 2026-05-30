@@ -24,6 +24,14 @@ jobs:
           environment-file: environment.yml
           activate-environment: tuf-irrigation-data
 
+      - name: Re-fetch days with missing data
+        shell: bash -el {0}
+        env:
+          OPENSPRINKLER_OTC_TOKEN: ${{ secrets.OPENSPRINKLER_OTC_TOKEN }}
+          OPENSPRINKLER_PASSWORD_HASH: ${{ secrets.OPENSPRINKLER_PASSWORD_HASH }}
+          WEATHER_UNDERGROUND_API_KEY: ${{ secrets.WEATHER_UNDERGROUND_API_KEY }}
+        run: python scripts/recover_missing.py
+
       - name: Fetch yesterday's data
         shell: bash -el {0}
         env:

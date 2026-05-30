@@ -3,7 +3,7 @@
 
 Reads:
   data/daily/*.json     — one file per day from fetch_log.py
-  zone_config.json      — label overrides and grant zone index
+  zone_config.json      — label overrides, flow rates, and grant zone index
 
 Writes:
   irrigation_summary.json         — consumed by Hugo website template
@@ -54,7 +54,6 @@ def parse_zone_durations(log_entries: list) -> dict[int, int]:
 def load_zone_config() -> dict:
     with open(ZONE_CONFIG_PATH) as f:
         cfg = json.load(f)
-    # strip the _note field — it's documentation only
     cfg.pop("_note", None)
     return cfg
 
@@ -71,29 +70,35 @@ def main() -> None:
     config = load_zone_config()
     grant_zone: int = config["grant_zone"]
     label_overrides: dict[str, str] = config.get("labels", {})
+    default_visible_zones: list[int] = config.get("default_visible_zones", [grant_zone])
+    flow_rate_cfg: dict[str, dict] = config.get("flow_rates", {})
 
     records = load_daily_records()
     print(f"Loaded {len(records)} daily records from {SEASON_START} onward.")
 
-    # /jn (station names) is not supported by this firmware via OTC; labels come from
-    # zone_config.json. Discover active station indices from log entries instead.
-    station_names: dict[int, str] = {}
-    all_indices_set: set[int] = set()
-    for r in records:
-        irr = r.get("irrigation")
-        if irr:
-            for entry in irr.get("logs", []):
-                if len(entry) >= 1:
-                    sid = int(entry[0])
-                    if sid < 64:  # exclude special indices (e.g. 99 = master/sensor)
-                        all_indices_set.add(sid)
-
-    all_indices = sorted(all_indices_set)
+    # Enumerate all zones from zone_config.json labels (not discovered from log entries)
+    # so zones that haven't run yet still appear in the output.
+    all_indices = sorted(int(k) for k in label_overrides.keys())
 
     def zone_label(idx: int) -> str:
-        return label_overrides.get(str(idx), station_names.get(idx, f"Zone {idx + 1}"))
+        return label_overrides.get(str(idx), f"Zone {idx + 1}")
 
-    zones = [{"index": i, "label": zone_label(i)} for i in all_indices]
+    def zone_flow(idx: int) -> tuple[float, bool]:
+        fr = flow_rate_cfg.get(str(idx), {})
+        return fr.get("gpm", 0.0), fr.get("estimated", False)
+
+    any_flow_estimated = any(
+        flow_rate_cfg.get(str(i), {}).get("estimated", False) for i in all_indices
+    )
+
+    zones = [
+        {
+            "index": i,
+            "label": zone_label(i),
+            "default_visible": i in default_visible_zones,
+        }
+        for i in all_indices
+    ]
 
     # Season totals
     season_sec: dict[int, int] = {}
@@ -102,17 +107,24 @@ def main() -> None:
         if not irr:
             continue
         for sid, dur in parse_zone_durations(irr.get("logs", [])).items():
-            season_sec[sid] = season_sec.get(sid, 0) + dur
+            if sid in all_indices:
+                season_sec[sid] = season_sec.get(sid, 0) + dur
 
-    season_totals = [
-        {
+    season_totals = []
+    for i in all_indices:
+        gpm, estimated = zone_flow(i)
+        dur_min = round(season_sec.get(i, 0) / 60, 1)
+        entry: dict = {
             "index": i,
             "label": zone_label(i),
-            "duration_min": round(season_sec.get(i, 0) / 60, 1),
+            "duration_min": dur_min,
             "duration_hhmm": fmt_hhmm(season_sec.get(i, 0) / 60),
         }
-        for i in all_indices
-    ]
+        if gpm:
+            entry["gallons"] = round(gpm * dur_min, 1)
+            entry["flow_rate_gpm"] = gpm
+            entry["flow_rate_estimated"] = estimated
+        season_totals.append(entry)
 
     # Group records by ISO week
     by_week: dict[str, list[dict]] = {}
@@ -137,12 +149,14 @@ def main() -> None:
             if not irr:
                 continue
             for sid, dur in parse_zone_durations(irr.get("logs", [])).items():
-                week_sec[sid] = week_sec.get(sid, 0) + dur
+                if sid in all_indices:
+                    week_sec[sid] = week_sec.get(sid, 0) + dur
 
         # Aggregate weather across days
         precip_total = 0.0
         temps_high: list[float] = []
         temps_low: list[float] = []
+        humidities: list[float] = []
         any_missing = False
         for r in day_records:
             w = r.get("weather")
@@ -155,6 +169,10 @@ def main() -> None:
                 temps_high.append(w["temp_high_f"])
             if w.get("temp_low_f") is not None:
                 temps_low.append(w["temp_low_f"])
+            if w.get("humidity_avg_pct") is not None:
+                humidities.append(w["humidity_avg_pct"])
+
+        humidity_avg = round(sum(humidities) / len(humidities), 1) if humidities else None
 
         weather_summary = {
             "precip_total_in": round(precip_total, 2),
@@ -166,18 +184,25 @@ def main() -> None:
                 if temps_high and temps_low
                 else ""
             ),
+            "humidity_avg_pct": humidity_avg,
+            "humidity_display": f"{humidity_avg:.0f}" if humidity_avg is not None else "",
             "data_complete": not any_missing,
         }
 
-        zone_entries = [
-            {
+        zone_entries = []
+        for i in all_indices:
+            gpm, estimated = zone_flow(i)
+            dur_min = round(week_sec.get(i, 0) / 60, 1)
+            entry: dict = {
                 "index": i,
                 "label": zone_label(i),
-                "duration_min": round(week_sec.get(i, 0) / 60, 1),
+                "duration_min": dur_min,
                 "duration_hhmm": fmt_hhmm(week_sec.get(i, 0) / 60),
             }
-            for i in all_indices
-        ]
+            if gpm:
+                entry["gallons"] = round(gpm * dur_min, 1)
+                entry["flow_rate_estimated"] = estimated
+            zone_entries.append(entry)
 
         weekly_summaries.append({
             "week": wk_label,
@@ -192,23 +217,27 @@ def main() -> None:
         with open(csv_path, "w", newline="") as f:
             writer = csv.writer(f)
             writer.writerow([
-                "Date", "Zone Index", "Zone Label", "Duration (min)",
-                "Precip (in)", "Temp High (°F)", "Temp Low (°F)",
+                "Date", "Zone Index", "Zone Label", "Duration (min)", "Gallons (est.)",
+                "Precip (in)", "Temp High (°F)", "Temp Low (°F)", "Humidity Avg (%)",
             ])
             for r in sorted(day_records, key=lambda x: x["date"]):
                 irr = r.get("irrigation")
                 day_dur = parse_zone_durations(irr.get("logs", [])) if irr else {}
                 w = r.get("weather") or {}
                 for idx in all_indices:
+                    gpm, _ = zone_flow(idx)
                     dur_min = round(day_dur.get(idx, 0) / 60, 1)
+                    gallons = round(gpm * dur_min, 1) if gpm else ""
                     writer.writerow([
                         r["date"],
                         idx,
                         zone_label(idx),
                         dur_min,
+                        gallons,
                         w.get("precip_total_in", ""),
                         w.get("temp_high_f", ""),
                         w.get("temp_low_f", ""),
+                        w.get("humidity_avg_pct", ""),
                     ])
 
     # All-weeks CSV: one row per week × zone
@@ -217,7 +246,8 @@ def main() -> None:
         writer = csv.writer(f)
         writer.writerow([
             "Week", "Week Start", "Week End", "Zone Index", "Zone Label",
-            "Duration (min)", "Precip (in)", "Temp High (°F)", "Temp Low (°F)",
+            "Duration (min)", "Gallons (est.)", "Precip (in)",
+            "Temp High (°F)", "Temp Low (°F)", "Humidity Avg (%)",
         ])
         for wk in weekly_summaries:
             for ze in wk["zones"]:
@@ -229,9 +259,11 @@ def main() -> None:
                     ze["index"],
                     ze["label"],
                     ze["duration_min"],
+                    ze.get("gallons", ""),
                     w.get("precip_total_in", ""),
                     w.get("temp_high_f", ""),
                     w.get("temp_low_f", ""),
+                    w.get("humidity_avg_pct", ""),
                 ])
 
     # Summary JSON for Hugo
@@ -239,6 +271,8 @@ def main() -> None:
         "last_updated": date.today().isoformat(),
         "season_start": SEASON_START.isoformat(),
         "grant_zone": grant_zone,
+        "default_visible_zones": default_visible_zones,
+        "flow_rate_estimated": any_flow_estimated,
         "zones": zones,
         "season_totals": season_totals,
         "weekly": weekly_summaries,
@@ -249,7 +283,7 @@ def main() -> None:
     print(f"Wrote {SUMMARY_OUT}")
     print(f"Wrote {len(weekly_summaries)} weekly CSV(s) to {WEEKLY_DIR}/")
     print(f"Wrote {all_csv_path}")
-    if any_missing := any(not wk["weather"]["data_complete"] for wk in weekly_summaries):
+    if any(not wk["weather"]["data_complete"] for wk in weekly_summaries):
         print("NOTE: some weeks have incomplete weather data (marked with * in precip_display).")
 
 

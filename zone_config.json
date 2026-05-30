@@ -1,10 +1,17 @@
 {
   "_note": "Station indices are 0-based. Labels override controller names (which are unavailable via OTC API). grant_zone controls which zone is highlighted by default on the water-usage page.",
   "grant_zone": 3,
+  "default_visible_zones": [2, 3],
   "labels": {
     "0": "East landscaping",
     "1": "West landscaping",
     "2": "Farm: greenhouse",
     "3": "Farm: outdoor"
+  },
+  "flow_rates": {
+    "0": {"gpm": 2.0, "type": "spray", "estimated": true},
+    "1": {"gpm": 2.0, "type": "spray", "estimated": true},
+    "2": {"gpm": 1.0, "type": "drip", "estimated": true},
+    "3": {"gpm": 2.0, "type": "spray", "estimated": true}
   }
 }
