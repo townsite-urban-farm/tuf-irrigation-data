@@ -1,0 +1,7 @@
+name: tuf-irrigation-data
+channels:
+  - conda-forge
+  - defaults
+dependencies:
+  - python=3.12
+  - requests

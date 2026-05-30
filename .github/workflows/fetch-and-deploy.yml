@@ -1,0 +1,73 @@
+name: Fetch irrigation logs and deploy
+
+on:
+  schedule:
+    - cron: '0 7 * * *'  # 7 AM UTC = midnight Arizona MST (UTC-7, no DST)
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: irrigation-fetch
+  cancel-in-progress: false
+
+jobs:
+  fetch-and-deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up conda environment
+        uses: conda-incubator/setup-miniconda@v3
+        with:
+          environment-file: environment.yml
+          activate-environment: tuf-irrigation-data
+
+      - name: Fetch yesterday's data
+        shell: bash -el {0}
+        env:
+          OPENSPRINKLER_OTC_TOKEN: ${{ secrets.OPENSPRINKLER_OTC_TOKEN }}
+          OPENSPRINKLER_PASSWORD_HASH: ${{ secrets.OPENSPRINKLER_PASSWORD_HASH }}
+          WEATHER_UNDERGROUND_API_KEY: ${{ secrets.WEATHER_UNDERGROUND_API_KEY }}
+        run: |
+          python scripts/fetch_log.py \
+            || echo "WARNING: one or more data sources failed (see above); continuing with partial data"
+
+      - name: Regenerate summaries and reports
+        shell: bash -el {0}
+        run: python scripts/summarize.py
+
+      - name: Commit data to this repo
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add data/daily/ reports/ irrigation_summary.json
+          git diff --cached --quiet \
+            || git commit -m "MAINT: add irrigation and weather log $(date -u +%Y-%m-%d)"
+          git push
+
+      - name: Check out website repo
+        uses: actions/checkout@v4
+        with:
+          repository: townsite-urban-farm/website
+          ssh-key: ${{ secrets.WEBSITE_DEPLOY_KEY }}
+          path: _website
+
+      - name: Copy data and reports to website
+        run: |
+          mkdir -p _website/data
+          mkdir -p _website/static/irrigation-reports/weekly
+          cp irrigation_summary.json _website/data/irrigation_summary.json
+          cp reports/all-weeks.csv _website/static/irrigation-reports/
+          cp reports/weekly/*.csv _website/static/irrigation-reports/weekly/ 2>/dev/null || true
+
+      - name: Commit and push website
+        run: |
+          cd _website
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add data/irrigation_summary.json static/irrigation-reports/
+          git diff --cached --quiet \
+            || git commit -m "MAINT: update irrigation data $(date -u +%Y-%m-%d)"
+          git push
