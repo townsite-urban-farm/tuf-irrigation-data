@@ -12,6 +12,6 @@
     "0": {"gpm": 2.0, "type": "spray", "estimated": true},
     "1": {"gpm": 2.0, "type": "spray", "estimated": true},
     "2": {"gpm": 1.0, "type": "drip", "estimated": true},
-    "3": {"gpm": 2.0, "type": "spray", "estimated": true}
+    "3": {"gpm": 1.0, "type": "drip", "estimated": true}
   }
 }

@@ -42,28 +42,28 @@
     {
       "index": 1,
       "label": "West landscaping",
-      "duration_min": 240.0,
-      "duration_hhmm": "4:00",
-      "gallons": 480.0,
+      "duration_min": 120.0,
+      "duration_hhmm": "2:00",
+      "gallons": 240.0,
       "flow_rate_gpm": 2.0,
       "flow_rate_estimated": true
     },
     {
       "index": 2,
       "label": "Farm: greenhouse",
-      "duration_min": 350.0,
-      "duration_hhmm": "5:50",
-      "gallons": 350.0,
+      "duration_min": 210.0,
+      "duration_hhmm": "3:30",
+      "gallons": 210.0,
       "flow_rate_gpm": 1.0,
       "flow_rate_estimated": true
     },
     {
       "index": 3,
       "label": "Farm: outdoor",
-      "duration_min": 135.0,
-      "duration_hhmm": "2:15",
-      "gallons": 270.0,
-      "flow_rate_gpm": 2.0,
+      "duration_min": 75.0,
+      "duration_hhmm": "1:15",
+      "gallons": 75.0,
+      "flow_rate_gpm": 1.0,
       "flow_rate_estimated": true
     }
   ],
@@ -84,25 +84,25 @@
         {
           "index": 1,
           "label": "West landscaping",
-          "duration_min": 240.0,
-          "duration_hhmm": "4:00",
-          "gallons": 480.0,
+          "duration_min": 120.0,
+          "duration_hhmm": "2:00",
+          "gallons": 240.0,
           "flow_rate_estimated": true
         },
         {
           "index": 2,
           "label": "Farm: greenhouse",
-          "duration_min": 350.0,
-          "duration_hhmm": "5:50",
-          "gallons": 350.0,
+          "duration_min": 210.0,
+          "duration_hhmm": "3:30",
+          "gallons": 210.0,
           "flow_rate_estimated": true
         },
         {
           "index": 3,
           "label": "Farm: outdoor",
-          "duration_min": 135.0,
-          "duration_hhmm": "2:15",
-          "gallons": 270.0,
+          "duration_min": 75.0,
+          "duration_hhmm": "1:15",
+          "gallons": 75.0,
           "flow_rate_estimated": true
         }
       ],
