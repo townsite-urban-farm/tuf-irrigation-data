@@ -320,7 +320,7 @@ def main() -> None:
 
     # Summary JSON for Hugo
     summary = {
-        "last_updated": date.today().isoformat(),
+        "last_updated": datetime.now(ZoneInfo("America/Phoenix")).strftime("%Y-%m-%d %H:%M MST"),
         "season_start": SEASON_START.isoformat(),
         "grant_zone": grant_zone,
         "default_visible_zones": default_visible_zones,
