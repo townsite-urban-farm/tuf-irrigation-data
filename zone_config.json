@@ -9,9 +9,9 @@
     "3": "Farm: outdoor"
   },
   "flow_rates": {
-    "0": {"gpm": 2.0, "type": "spray", "estimated": true},
-    "1": {"gpm": 2.0, "type": "spray", "estimated": true},
-    "2": {"gpm": 1.0, "type": "drip", "estimated": true},
-    "3": {"gpm": 1.0, "type": "drip", "estimated": true}
+    "0": {"gpm": 0.5, "type": "spray", "estimated": false},
+    "1": {"gpm": 0.2, "type": "spray", "estimated": false},
+    "2": {"gpm": 0.4, "type": "drip", "estimated": false},
+    "3": {"gpm": 0.3, "type": "drip", "estimated": false}
   }
 }

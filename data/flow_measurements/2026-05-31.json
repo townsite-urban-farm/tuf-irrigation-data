@@ -1,0 +1,44 @@
+{
+  "date": "2026-05-31",
+  "method": "municipal_water_meter",
+  "duration_minutes": 10,
+  "meter": {
+    "make": "Badger Meter",
+    "model": "35",
+    "type": "Absolute Digital Encoder (ADE)",
+    "size": "3/4\"",
+    "part_number": "64501-002",
+    "register": "1014",
+    "units": "gallons"
+  },
+  "zones": {
+    "0": {
+      "label": "East landscaping",
+      "meter_start": 100015,
+      "meter_end": 100020,
+      "gallons": 5,
+      "gpm": 0.5
+    },
+    "1": {
+      "label": "West landscaping",
+      "meter_start": 100020,
+      "meter_end": 100022,
+      "gallons": 2,
+      "gpm": 0.2
+    },
+    "2": {
+      "label": "Farm: greenhouse",
+      "meter_start": 100025,
+      "meter_end": 100029,
+      "gallons": 4,
+      "gpm": 0.4
+    },
+    "3": {
+      "label": "Farm: outdoor",
+      "meter_start": 100022,
+      "meter_end": 100025,
+      "gallons": 3,
+      "gpm": 0.3
+    }
+  }
+}

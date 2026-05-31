@@ -6,7 +6,7 @@
     2,
     3
   ],
-  "flow_rate_estimated": true,
+  "flow_rate_estimated": false,
   "zones": [
     {
       "index": 0,
@@ -35,36 +35,36 @@
       "label": "East landscaping",
       "duration_min": 0.7,
       "duration_hhmm": "0:01",
-      "gallons": 1.4,
-      "flow_rate_gpm": 2.0,
-      "flow_rate_estimated": true
+      "gallons": 0.3,
+      "flow_rate_gpm": 0.5,
+      "flow_rate_estimated": false
     },
     {
       "index": 1,
       "label": "West landscaping",
       "duration_min": 120.0,
       "duration_hhmm": "2:00",
-      "gallons": 240.0,
-      "flow_rate_gpm": 2.0,
-      "flow_rate_estimated": true
+      "gallons": 24.0,
+      "flow_rate_gpm": 0.2,
+      "flow_rate_estimated": false
     },
     {
       "index": 2,
       "label": "Farm: greenhouse",
       "duration_min": 210.0,
       "duration_hhmm": "3:30",
-      "gallons": 210.0,
-      "flow_rate_gpm": 1.0,
-      "flow_rate_estimated": true
+      "gallons": 84.0,
+      "flow_rate_gpm": 0.4,
+      "flow_rate_estimated": false
     },
     {
       "index": 3,
       "label": "Farm: outdoor",
       "duration_min": 90.0,
       "duration_hhmm": "1:30",
-      "gallons": 90.0,
-      "flow_rate_gpm": 1.0,
-      "flow_rate_estimated": true
+      "gallons": 27.0,
+      "flow_rate_gpm": 0.3,
+      "flow_rate_estimated": false
     }
   ],
   "weekly": [
@@ -78,32 +78,32 @@
           "label": "East landscaping",
           "duration_min": 0.7,
           "duration_hhmm": "0:01",
-          "gallons": 1.4,
-          "flow_rate_estimated": true
+          "gallons": 0.3,
+          "flow_rate_estimated": false
         },
         {
           "index": 1,
           "label": "West landscaping",
           "duration_min": 120.0,
           "duration_hhmm": "2:00",
-          "gallons": 240.0,
-          "flow_rate_estimated": true
+          "gallons": 24.0,
+          "flow_rate_estimated": false
         },
         {
           "index": 2,
           "label": "Farm: greenhouse",
           "duration_min": 210.0,
           "duration_hhmm": "3:30",
-          "gallons": 210.0,
-          "flow_rate_estimated": true
+          "gallons": 84.0,
+          "flow_rate_estimated": false
         },
         {
           "index": 3,
           "label": "Farm: outdoor",
           "duration_min": 90.0,
           "duration_hhmm": "1:30",
-          "gallons": 90.0,
-          "flow_rate_estimated": true
+          "gallons": 27.0,
+          "flow_rate_estimated": false
         }
       ],
       "weather": {
