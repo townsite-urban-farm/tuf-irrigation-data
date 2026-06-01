@@ -1,5 +1,5 @@
 {
-  "last_updated": "2026-05-31 11:08 MST",
+  "last_updated": "2026-06-01 05:38 MST",
   "season_start": "2026-05-25",
   "grant_zone": 3,
   "default_visible_zones": [
@@ -60,9 +60,9 @@
     {
       "index": 3,
       "label": "Farm: outdoor",
-      "duration_min": 90.0,
-      "duration_hhmm": "1:30",
-      "gallons": 27.0,
+      "duration_min": 105.0,
+      "duration_hhmm": "1:45",
+      "gallons": 31.5,
       "flow_rate_gpm": 0.3,
       "flow_rate_estimated": false
     }
@@ -100,20 +100,20 @@
         {
           "index": 3,
           "label": "Farm: outdoor",
-          "duration_min": 90.0,
-          "duration_hhmm": "1:30",
-          "gallons": 27.0,
+          "duration_min": 105.0,
+          "duration_hhmm": "1:45",
+          "gallons": 31.5,
           "flow_rate_estimated": false
         }
       ],
       "weather": {
         "precip_total_in": 0.07,
         "precip_display": "0.07",
-        "temp_high_f": 72.9,
+        "temp_high_f": 79.3,
         "temp_low_f": 32.5,
-        "temp_display": "73 / 32",
-        "humidity_avg_pct": 44.8,
-        "humidity_display": "45",
+        "temp_display": "79 / 32",
+        "humidity_avg_pct": 43.0,
+        "humidity_display": "43",
         "data_complete": true
       }
     }
