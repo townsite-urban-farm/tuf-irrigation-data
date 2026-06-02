@@ -1,0 +1,5 @@
+Date,Zone Index,Zone Label,Duration (min),Gallons (est.),Precip (in),Temp High (°F),Temp Low (°F),Humidity Avg (%)
+2026-06-01,0,East landscaping,0.0,0.0,0.0,80.5,42.8,29.1
+2026-06-01,1,West landscaping,0.0,0.0,0.0,80.5,42.8,29.1
+2026-06-01,2,Farm: greenhouse,35.0,14.0,0.0,80.5,42.8,29.1
+2026-06-01,3,Farm: outdoor,15.0,4.5,0.0,80.5,42.8,29.1

@@ -1,5 +1,5 @@
 {
-  "last_updated": "2026-06-01 05:38 MST",
+  "last_updated": "2026-06-02 04:19 MST",
   "season_start": "2026-05-25",
   "grant_zone": 3,
   "default_visible_zones": [
@@ -51,18 +51,18 @@
     {
       "index": 2,
       "label": "Farm: greenhouse",
-      "duration_min": 210.0,
-      "duration_hhmm": "3:30",
-      "gallons": 84.0,
+      "duration_min": 245.0,
+      "duration_hhmm": "4:05",
+      "gallons": 98.0,
       "flow_rate_gpm": 0.4,
       "flow_rate_estimated": false
     },
     {
       "index": 3,
       "label": "Farm: outdoor",
-      "duration_min": 105.0,
-      "duration_hhmm": "1:45",
-      "gallons": 31.5,
+      "duration_min": 120.0,
+      "duration_hhmm": "2:00",
+      "gallons": 36.0,
       "flow_rate_gpm": 0.3,
       "flow_rate_estimated": false
     }
@@ -114,6 +114,55 @@
         "temp_display": "79 / 32",
         "humidity_avg_pct": 43.0,
         "humidity_display": "43",
+        "data_complete": true
+      }
+    },
+    {
+      "week": "2026-W23",
+      "week_start": "2026-06-01",
+      "week_end": "2026-06-07",
+      "zones": [
+        {
+          "index": 0,
+          "label": "East landscaping",
+          "duration_min": 0.0,
+          "duration_hhmm": "0:00",
+          "gallons": 0.0,
+          "flow_rate_estimated": false
+        },
+        {
+          "index": 1,
+          "label": "West landscaping",
+          "duration_min": 0.0,
+          "duration_hhmm": "0:00",
+          "gallons": 0.0,
+          "flow_rate_estimated": false
+        },
+        {
+          "index": 2,
+          "label": "Farm: greenhouse",
+          "duration_min": 35.0,
+          "duration_hhmm": "0:35",
+          "gallons": 14.0,
+          "flow_rate_estimated": false
+        },
+        {
+          "index": 3,
+          "label": "Farm: outdoor",
+          "duration_min": 15.0,
+          "duration_hhmm": "0:15",
+          "gallons": 4.5,
+          "flow_rate_estimated": false
+        }
+      ],
+      "weather": {
+        "precip_total_in": 0.0,
+        "precip_display": "0.00",
+        "temp_high_f": 80.5,
+        "temp_low_f": 42.8,
+        "temp_display": "80 / 43",
+        "humidity_avg_pct": 29.1,
+        "humidity_display": "29",
         "data_complete": true
       }
     }
