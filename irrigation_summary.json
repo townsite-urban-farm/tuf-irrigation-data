@@ -1,5 +1,5 @@
 {
-  "last_updated": "2026-06-28 02:57 MST",
+  "last_updated": "2026-06-29 04:59 MST",
   "season_start": "2026-05-25",
   "grant_zone": 3,
   "default_visible_zones": [
@@ -42,27 +42,27 @@
     {
       "index": 1,
       "label": "West landscaping",
-      "duration_min": 780.0,
-      "duration_hhmm": "13:00",
-      "gallons": 156.0,
+      "duration_min": 840.0,
+      "duration_hhmm": "14:00",
+      "gallons": 168.0,
       "flow_rate_gpm": 0.2,
       "flow_rate_estimated": false
     },
     {
       "index": 2,
       "label": "Farm: greenhouse",
-      "duration_min": 1780.0,
-      "duration_hhmm": "29:40",
-      "gallons": 712.0,
+      "duration_min": 1840.0,
+      "duration_hhmm": "30:40",
+      "gallons": 736.0,
       "flow_rate_gpm": 0.4,
       "flow_rate_estimated": false
     },
     {
       "index": 3,
       "label": "Farm: outdoor",
-      "duration_min": 635.0,
-      "duration_hhmm": "10:35",
-      "gallons": 158.8,
+      "duration_min": 655.0,
+      "duration_hhmm": "10:55",
+      "gallons": 163.8,
       "flow_rate_gpm": 0.25,
       "flow_rate_estimated": false
     }
@@ -280,25 +280,25 @@
         {
           "index": 1,
           "label": "West landscaping",
-          "duration_min": 120.0,
-          "duration_hhmm": "2:00",
-          "gallons": 24.0,
+          "duration_min": 180.0,
+          "duration_hhmm": "3:00",
+          "gallons": 36.0,
           "flow_rate_estimated": false
         },
         {
           "index": 2,
           "label": "Farm: greenhouse",
-          "duration_min": 360.0,
-          "duration_hhmm": "6:00",
-          "gallons": 144.0,
+          "duration_min": 420.0,
+          "duration_hhmm": "7:00",
+          "gallons": 168.0,
           "flow_rate_estimated": false
         },
         {
           "index": 3,
           "label": "Farm: outdoor",
-          "duration_min": 120.0,
-          "duration_hhmm": "2:00",
-          "gallons": 30.0,
+          "duration_min": 140.0,
+          "duration_hhmm": "2:20",
+          "gallons": 35.0,
           "flow_rate_estimated": false
         }
       ],
@@ -308,8 +308,8 @@
         "temp_high_f": 89.8,
         "temp_low_f": 46.2,
         "temp_display": "90 / 46",
-        "humidity_avg_pct": 33.4,
-        "humidity_display": "33",
+        "humidity_avg_pct": 32.5,
+        "humidity_display": "32",
         "data_complete": true
       }
     }
