@@ -1,5 +1,5 @@
 {
-  "last_updated": "2026-07-02 03:10 MST",
+  "last_updated": "2026-07-03 02:59 MST",
   "season_start": "2026-05-25",
   "grant_zone": 3,
   "default_visible_zones": [
@@ -51,18 +51,18 @@
     {
       "index": 2,
       "label": "Farm: greenhouse",
-      "duration_min": 2020.0,
-      "duration_hhmm": "33:40",
-      "gallons": 808.0,
+      "duration_min": 2080.0,
+      "duration_hhmm": "34:40",
+      "gallons": 832.0,
       "flow_rate_gpm": 0.4,
       "flow_rate_estimated": false
     },
     {
       "index": 3,
       "label": "Farm: outdoor",
-      "duration_min": 715.0,
-      "duration_hhmm": "11:55",
-      "gallons": 178.8,
+      "duration_min": 735.0,
+      "duration_hhmm": "12:15",
+      "gallons": 183.8,
       "flow_rate_gpm": 0.25,
       "flow_rate_estimated": false
     }
@@ -337,28 +337,28 @@
         {
           "index": 2,
           "label": "Farm: greenhouse",
-          "duration_min": 180.0,
-          "duration_hhmm": "3:00",
-          "gallons": 72.0,
+          "duration_min": 240.0,
+          "duration_hhmm": "4:00",
+          "gallons": 96.0,
           "flow_rate_estimated": false
         },
         {
           "index": 3,
           "label": "Farm: outdoor",
-          "duration_min": 60.0,
-          "duration_hhmm": "1:00",
-          "gallons": 15.0,
+          "duration_min": 80.0,
+          "duration_hhmm": "1:20",
+          "gallons": 20.0,
           "flow_rate_estimated": false
         }
       ],
       "weather": {
         "precip_total_in": 0.01,
         "precip_display": "0.01",
-        "temp_high_f": 75.7,
+        "temp_high_f": 79.8,
         "temp_low_f": 39.2,
-        "temp_display": "76 / 39",
-        "humidity_avg_pct": 27.2,
-        "humidity_display": "27",
+        "temp_display": "80 / 39",
+        "humidity_avg_pct": 26.0,
+        "humidity_display": "26",
         "data_complete": true
       }
     }
