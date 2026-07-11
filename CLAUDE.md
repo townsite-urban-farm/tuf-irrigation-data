@@ -34,6 +34,22 @@ on this firmware via OTC.
 - `default_visible_zones`: zones shown checked by default on the website [2, 3]
 - `flow_rates`: estimated GPM per zone; `"estimated": true` until validated by water meter
   — Farm zones use drip tape; landscaping zones use spray heads (estimates only)
+- `crop_splits`: optional per-zone sub-metering estimate for grant reporting, keyed by
+  zone index. Each zone lists ordered `crops`; a crop has either `fixed_gph` (gallons per
+  hour of the zone's run time) or `remainder_pct` (share of the gallons left after the
+  fixed-rate crops). `remainder_pct` values must sum to 1.0. Currently splits zone 3
+  (Farm: outdoor) into nectarine/apple (2 GPH each) + beans/corn/pumpkin (58/21/21% of
+  the remainder). These are estimates, not independently metered.
+
+## Per-crop breakdown
+
+`summarize.py` derives a per-crop breakdown from the same deduplicated zone runs (see
+`split_crops`). The split is linear in watering time, so it is applied to aggregated
+seconds at each level (season, week, per-day CSV rows) identically to splitting each run.
+Outputs: a `crop_breakdown` section in `irrigation_summary.json`, `reports/crops-all-weeks.csv`,
+and `reports/weekly/YYYY-Www-crops.csv`. Zone totals are left unchanged. Because the tree
+crops are a fixed GPH draw and the row crops absorb the remainder, the split stays correct
+if a zone's measured flow rate is later revised.
 
 ## Season start
 

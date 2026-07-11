@@ -1,5 +1,5 @@
 {
-  "last_updated": "2026-07-11 01:46 MST",
+  "last_updated": "2026-07-11 03:01 MST",
   "season_start": "2026-05-25",
   "grant_zone": 3,
   "default_visible_zones": [
@@ -410,6 +410,308 @@
         "humidity_display": "33",
         "data_complete": true
       }
+    }
+  ],
+  "crop_breakdown": [
+    {
+      "zone_index": 3,
+      "zone_label": "Farm: outdoor",
+      "flow_rate_gpm": 0.25,
+      "flow_rate_estimated": false,
+      "estimated": true,
+      "season": [
+        {
+          "key": "nectarine",
+          "label": "Nectarine",
+          "duration_min": 895.0,
+          "gallons": 29.8
+        },
+        {
+          "key": "apple",
+          "label": "Apple",
+          "duration_min": 895.0,
+          "gallons": 29.8
+        },
+        {
+          "key": "beans",
+          "label": "Beans",
+          "duration_min": 895.0,
+          "gallons": 95.2
+        },
+        {
+          "key": "corn",
+          "label": "Corn",
+          "duration_min": 895.0,
+          "gallons": 34.5
+        },
+        {
+          "key": "pumpkin",
+          "label": "Pumpkin",
+          "duration_min": 895.0,
+          "gallons": 34.5
+        }
+      ],
+      "weekly": [
+        {
+          "week": "2026-W22",
+          "week_start": "2026-05-25",
+          "week_end": "2026-05-31",
+          "crops": [
+            {
+              "key": "nectarine",
+              "label": "Nectarine",
+              "duration_min": 105.0,
+              "gallons": 3.5
+            },
+            {
+              "key": "apple",
+              "label": "Apple",
+              "duration_min": 105.0,
+              "gallons": 3.5
+            },
+            {
+              "key": "beans",
+              "label": "Beans",
+              "duration_min": 105.0,
+              "gallons": 11.2
+            },
+            {
+              "key": "corn",
+              "label": "Corn",
+              "duration_min": 105.0,
+              "gallons": 4.0
+            },
+            {
+              "key": "pumpkin",
+              "label": "Pumpkin",
+              "duration_min": 105.0,
+              "gallons": 4.0
+            }
+          ]
+        },
+        {
+          "week": "2026-W23",
+          "week_start": "2026-06-01",
+          "week_end": "2026-06-07",
+          "crops": [
+            {
+              "key": "nectarine",
+              "label": "Nectarine",
+              "duration_min": 130.0,
+              "gallons": 4.3
+            },
+            {
+              "key": "apple",
+              "label": "Apple",
+              "duration_min": 130.0,
+              "gallons": 4.3
+            },
+            {
+              "key": "beans",
+              "label": "Beans",
+              "duration_min": 130.0,
+              "gallons": 13.8
+            },
+            {
+              "key": "corn",
+              "label": "Corn",
+              "duration_min": 130.0,
+              "gallons": 5.0
+            },
+            {
+              "key": "pumpkin",
+              "label": "Pumpkin",
+              "duration_min": 130.0,
+              "gallons": 5.0
+            }
+          ]
+        },
+        {
+          "week": "2026-W24",
+          "week_start": "2026-06-08",
+          "week_end": "2026-06-14",
+          "crops": [
+            {
+              "key": "nectarine",
+              "label": "Nectarine",
+              "duration_min": 140.0,
+              "gallons": 4.7
+            },
+            {
+              "key": "apple",
+              "label": "Apple",
+              "duration_min": 140.0,
+              "gallons": 4.7
+            },
+            {
+              "key": "beans",
+              "label": "Beans",
+              "duration_min": 140.0,
+              "gallons": 14.9
+            },
+            {
+              "key": "corn",
+              "label": "Corn",
+              "duration_min": 140.0,
+              "gallons": 5.4
+            },
+            {
+              "key": "pumpkin",
+              "label": "Pumpkin",
+              "duration_min": 140.0,
+              "gallons": 5.4
+            }
+          ]
+        },
+        {
+          "week": "2026-W25",
+          "week_start": "2026-06-15",
+          "week_end": "2026-06-21",
+          "crops": [
+            {
+              "key": "nectarine",
+              "label": "Nectarine",
+              "duration_min": 140.0,
+              "gallons": 4.7
+            },
+            {
+              "key": "apple",
+              "label": "Apple",
+              "duration_min": 140.0,
+              "gallons": 4.7
+            },
+            {
+              "key": "beans",
+              "label": "Beans",
+              "duration_min": 140.0,
+              "gallons": 14.9
+            },
+            {
+              "key": "corn",
+              "label": "Corn",
+              "duration_min": 140.0,
+              "gallons": 5.4
+            },
+            {
+              "key": "pumpkin",
+              "label": "Pumpkin",
+              "duration_min": 140.0,
+              "gallons": 5.4
+            }
+          ]
+        },
+        {
+          "week": "2026-W26",
+          "week_start": "2026-06-22",
+          "week_end": "2026-06-28",
+          "crops": [
+            {
+              "key": "nectarine",
+              "label": "Nectarine",
+              "duration_min": 140.0,
+              "gallons": 4.7
+            },
+            {
+              "key": "apple",
+              "label": "Apple",
+              "duration_min": 140.0,
+              "gallons": 4.7
+            },
+            {
+              "key": "beans",
+              "label": "Beans",
+              "duration_min": 140.0,
+              "gallons": 14.9
+            },
+            {
+              "key": "corn",
+              "label": "Corn",
+              "duration_min": 140.0,
+              "gallons": 5.4
+            },
+            {
+              "key": "pumpkin",
+              "label": "Pumpkin",
+              "duration_min": 140.0,
+              "gallons": 5.4
+            }
+          ]
+        },
+        {
+          "week": "2026-W27",
+          "week_start": "2026-06-29",
+          "week_end": "2026-07-05",
+          "crops": [
+            {
+              "key": "nectarine",
+              "label": "Nectarine",
+              "duration_min": 140.0,
+              "gallons": 4.7
+            },
+            {
+              "key": "apple",
+              "label": "Apple",
+              "duration_min": 140.0,
+              "gallons": 4.7
+            },
+            {
+              "key": "beans",
+              "label": "Beans",
+              "duration_min": 140.0,
+              "gallons": 14.9
+            },
+            {
+              "key": "corn",
+              "label": "Corn",
+              "duration_min": 140.0,
+              "gallons": 5.4
+            },
+            {
+              "key": "pumpkin",
+              "label": "Pumpkin",
+              "duration_min": 140.0,
+              "gallons": 5.4
+            }
+          ]
+        },
+        {
+          "week": "2026-W28",
+          "week_start": "2026-07-06",
+          "week_end": "2026-07-12",
+          "crops": [
+            {
+              "key": "nectarine",
+              "label": "Nectarine",
+              "duration_min": 100.0,
+              "gallons": 3.3
+            },
+            {
+              "key": "apple",
+              "label": "Apple",
+              "duration_min": 100.0,
+              "gallons": 3.3
+            },
+            {
+              "key": "beans",
+              "label": "Beans",
+              "duration_min": 100.0,
+              "gallons": 10.6
+            },
+            {
+              "key": "corn",
+              "label": "Corn",
+              "duration_min": 100.0,
+              "gallons": 3.8
+            },
+            {
+              "key": "pumpkin",
+              "label": "Pumpkin",
+              "duration_min": 100.0,
+              "gallons": 3.8
+            }
+          ]
+        }
+      ]
     }
   ]
 }

@@ -37,6 +37,31 @@ def fmt_hhmm(minutes: float) -> str:
     return f"{total_min // 60}:{total_min % 60:02d}"
 
 
+def split_crops(total_sec: int, gpm: float, crops: list[dict]) -> list[dict]:
+    """Estimate per-crop gallons for a block of a zone's watering time.
+
+    Crops with ``fixed_gph`` draw that many gallons per hour of run time; the
+    remaining gallons are divided among ``remainder_pct`` crops. The split is
+    linear in watering time, so aggregating durations first and splitting once
+    is identical to splitting each run and summing. The remainder is clamped at
+    zero so a very short run can never produce negative crop gallons.
+    """
+    hours = total_sec / 3600
+    total_gal = gpm * (total_sec / 60)
+    fixed_total = sum(c["fixed_gph"] * hours for c in crops if "fixed_gph" in c)
+    remainder = max(0.0, total_gal - fixed_total)
+    out = []
+    for c in crops:
+        gal = c["fixed_gph"] * hours if "fixed_gph" in c else remainder * c.get("remainder_pct", 0.0)
+        out.append({
+            "key": c["key"],
+            "label": c["label"],
+            "duration_min": round(total_sec / 60, 1),
+            "gallons": round(gal, 1),
+        })
+    return out
+
+
 def iso_week_label(d: date) -> str:
     iso = d.isocalendar()
     return f"{iso.year}-W{iso.week:02d}"
@@ -97,6 +122,9 @@ def main() -> None:
     label_overrides: dict[str, str] = config.get("labels", {})
     default_visible_zones: list[int] = config.get("default_visible_zones", [grant_zone])
     flow_rate_cfg: dict[str, dict] = config.get("flow_rates", {})
+    crop_splits_cfg: dict[str, dict] = {
+        k: v for k, v in config.get("crop_splits", {}).items() if k != "_note"
+    }
 
     records = load_daily_records()
     print(f"Loaded {len(records)} daily records from {SEASON_START} onward.")
@@ -292,6 +320,36 @@ def main() -> None:
                         w.get("humidity_avg_pct", ""),
                     ])
 
+        # Per-week crop CSV: one row per AZ-date × crop for each split zone
+        if crop_splits_cfg:
+            crop_csv_path = WEEKLY_DIR / f"{wk_label}-crops.csv"
+            with open(crop_csv_path, "w", newline="") as f:
+                writer = csv.writer(f)
+                writer.writerow([
+                    "Date", "Zone Index", "Zone Label", "Crop", "Duration (min)",
+                    "Gallons (est.)", "Precip (in)", "Temp High (°F)", "Temp Low (°F)",
+                    "Humidity Avg (%)",
+                ])
+                for target_date in week_dates:
+                    day_dur = runs_by_date.get(target_date, {})
+                    w = date_to_weather.get(target_date, {})
+                    for zi_str, cfg_z in crop_splits_cfg.items():
+                        zi = int(zi_str)
+                        gpm, _ = zone_flow(zi)
+                        for crop in split_crops(day_dur.get(zi, 0), gpm, cfg_z.get("crops", [])):
+                            writer.writerow([
+                                target_date.isoformat(),
+                                zi,
+                                zone_label(zi),
+                                crop["label"],
+                                crop["duration_min"],
+                                crop["gallons"],
+                                w.get("precip_total_in", ""),
+                                w.get("temp_high_f", ""),
+                                w.get("temp_low_f", ""),
+                                w.get("humidity_avg_pct", ""),
+                            ])
+
     # All-weeks CSV: one row per week × zone
     all_csv_path = REPORTS_DIR / "all-weeks.csv"
     with open(all_csv_path, "w", newline="") as f:
@@ -318,6 +376,62 @@ def main() -> None:
                     w.get("humidity_avg_pct", ""),
                 ])
 
+    # Per-crop breakdown (estimated grant sub-metering) for zones in crop_splits.
+    # Derived from the same deduplicated runs as the zone totals.
+    crop_breakdown = []
+    for zi_str, cfg_z in crop_splits_cfg.items():
+        zi = int(zi_str)
+        gpm, estimated = zone_flow(zi)
+        crops = cfg_z.get("crops", [])
+        weekly_crops = [
+            {
+                "week": wk["week"],
+                "week_start": wk["week_start"],
+                "week_end": wk["week_end"],
+                "crops": split_crops(runs_by_week.get(wk["week"], {}).get(zi, 0), gpm, crops),
+            }
+            for wk in weekly_summaries
+        ]
+        crop_breakdown.append({
+            "zone_index": zi,
+            "zone_label": zone_label(zi),
+            "flow_rate_gpm": gpm,
+            "flow_rate_estimated": estimated,
+            "estimated": True,
+            "season": split_crops(season_sec.get(zi, 0), gpm, crops),
+            "weekly": weekly_crops,
+        })
+
+    # All-weeks crop CSV: one row per week × crop for each split zone
+    if crop_splits_cfg:
+        crops_all_csv_path = REPORTS_DIR / "crops-all-weeks.csv"
+        with open(crops_all_csv_path, "w", newline="") as f:
+            writer = csv.writer(f)
+            writer.writerow([
+                "Week", "Week Start", "Week End", "Zone Index", "Zone Label", "Crop",
+                "Duration (min)", "Gallons (est.)", "Precip (in)",
+                "Temp High (°F)", "Temp Low (°F)", "Humidity Avg (%)",
+            ])
+            week_weather = {wk["week"]: wk["weather"] for wk in weekly_summaries}
+            for zb in crop_breakdown:
+                for wk in zb["weekly"]:
+                    w = week_weather.get(wk["week"], {})
+                    for crop in wk["crops"]:
+                        writer.writerow([
+                            wk["week"],
+                            wk["week_start"],
+                            wk["week_end"],
+                            zb["zone_index"],
+                            zb["zone_label"],
+                            crop["label"],
+                            crop["duration_min"],
+                            crop["gallons"],
+                            w.get("precip_total_in", ""),
+                            w.get("temp_high_f", ""),
+                            w.get("temp_low_f", ""),
+                            w.get("humidity_avg_pct", ""),
+                        ])
+
     # Summary JSON for Hugo
     summary = {
         "last_updated": datetime.now(ZoneInfo("America/Phoenix")).strftime("%Y-%m-%d %H:%M MST"),
@@ -328,6 +442,7 @@ def main() -> None:
         "zones": zones,
         "season_totals": season_totals,
         "weekly": weekly_summaries,
+        "crop_breakdown": crop_breakdown,
     }
     with open(SUMMARY_OUT, "w") as f:
         json.dump(summary, f, indent=2)
@@ -335,6 +450,9 @@ def main() -> None:
     print(f"Wrote {SUMMARY_OUT}")
     print(f"Wrote {len(weekly_summaries)} weekly CSV(s) to {WEEKLY_DIR}/")
     print(f"Wrote {all_csv_path}")
+    if crop_splits_cfg:
+        print(f"Wrote per-crop breakdown for zone(s) {sorted(int(k) for k in crop_splits_cfg)} "
+              f"and {REPORTS_DIR / 'crops-all-weeks.csv'}")
     if any(not wk["weather"]["data_complete"] for wk in weekly_summaries):
         print("NOTE: some weeks have incomplete weather data (marked with * in precip_display).")
 

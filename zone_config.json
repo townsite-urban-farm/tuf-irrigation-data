@@ -13,5 +13,17 @@
     "1": {"gpm": 0.2, "type": "spray", "estimated": false},
     "2": {"gpm": 0.4, "type": "drip", "estimated": false},
     "3": {"gpm": 0.25, "type": "drip", "estimated": false}
+  },
+  "crop_splits": {
+    "_note": "Estimated per-crop sub-metering of a zone's gallons for grant reporting. Applied per unit of watering time: crops with 'fixed_gph' draw that many gallons per hour of the zone's run time; the remaining gallons are split among 'remainder_pct' crops. Percentages must sum to 1.0. Estimates only (not independently metered).",
+    "3": {
+      "crops": [
+        {"key": "nectarine", "label": "Nectarine", "fixed_gph": 2.0},
+        {"key": "apple", "label": "Apple", "fixed_gph": 2.0},
+        {"key": "beans", "label": "Beans", "remainder_pct": 0.58, "drip_tape_ft": 100},
+        {"key": "corn", "label": "Corn", "remainder_pct": 0.21, "drip_tape_ft": 36},
+        {"key": "pumpkin", "label": "Pumpkin", "remainder_pct": 0.21, "drip_tape_ft": 36}
+      ]
+    }
   }
 }
