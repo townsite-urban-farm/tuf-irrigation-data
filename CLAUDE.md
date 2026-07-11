@@ -51,6 +51,11 @@ and `reports/weekly/YYYY-Www-crops.csv`. Zone totals are left unchanged. Because
 crops are a fixed GPH draw and the row crops absorb the remainder, the split stays correct
 if a zone's measured flow rate is later revised.
 
+The deploy step copies these to the website: `crops-all-weeks.csv` has its own `cp` line,
+and the per-week `*-crops.csv` files transfer via the existing `weekly/*.csv` glob. The
+website template `layouts/water-systems/water-usage.html` (in the `website` repo) renders
+`crop_breakdown` as weekly + season tables with CSV download links for the grant program team.
+
 ## Season start
 
 `SEASON_START = date(2026, 5, 25)` in both `fetch_log.py` and `summarize.py`.
@@ -61,3 +66,7 @@ Update both if the season boundary changes.
 Nightly at 07:00 UTC (= Arizona midnight).
 Order: `recover_missing.py` → `fetch_log.py` → `summarize.py` → commit → push to website.
 `recover_missing.py` re-fetches any daily file where `irrigation` or `weather` is null.
+
+The deploy runs only on the nightly `schedule` and manual `workflow_dispatch` — **not** on
+push. To deploy on demand: `gh workflow run fetch-and-deploy.yml`. The website is a Hugo
+site on Cloudflare Pages; pushing data to the website repo's `main` triggers its rebuild.
