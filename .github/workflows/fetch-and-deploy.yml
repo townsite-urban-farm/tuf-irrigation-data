@@ -68,6 +68,7 @@ jobs:
           mkdir -p _website/static/irrigation-reports/weekly
           cp irrigation_summary.json _website/data/irrigation_summary.json
           cp reports/all-weeks.csv _website/static/irrigation-reports/
+          cp reports/crops-all-weeks.csv _website/static/irrigation-reports/ 2>/dev/null || true
           cp reports/weekly/*.csv _website/static/irrigation-reports/weekly/ 2>/dev/null || true
 
       - name: Commit and push website
