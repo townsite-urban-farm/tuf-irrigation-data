@@ -1,5 +1,5 @@
 {
-  "last_updated": "2026-07-11 03:25 MST",
+  "last_updated": "2026-07-12 02:02 MST",
   "season_start": "2026-05-25",
   "grant_zone": 3,
   "default_visible_zones": [
@@ -51,18 +51,18 @@
     {
       "index": 2,
       "label": "Farm: greenhouse",
-      "duration_min": 2560.0,
-      "duration_hhmm": "42:40",
-      "gallons": 1024.0,
+      "duration_min": 2620.0,
+      "duration_hhmm": "43:40",
+      "gallons": 1048.0,
       "flow_rate_gpm": 0.4,
       "flow_rate_estimated": false
     },
     {
       "index": 3,
       "label": "Farm: outdoor",
-      "duration_min": 895.0,
-      "duration_hhmm": "14:55",
-      "gallons": 223.8,
+      "duration_min": 915.0,
+      "duration_hhmm": "15:15",
+      "gallons": 228.8,
       "flow_rate_gpm": 0.25,
       "flow_rate_estimated": false
     }
@@ -386,27 +386,27 @@
         {
           "index": 2,
           "label": "Farm: greenhouse",
-          "duration_min": 300.0,
-          "duration_hhmm": "5:00",
-          "gallons": 120.0,
+          "duration_min": 360.0,
+          "duration_hhmm": "6:00",
+          "gallons": 144.0,
           "flow_rate_estimated": false
         },
         {
           "index": 3,
           "label": "Farm: outdoor",
-          "duration_min": 100.0,
-          "duration_hhmm": "1:40",
-          "gallons": 25.0,
+          "duration_min": 120.0,
+          "duration_hhmm": "2:00",
+          "gallons": 30.0,
           "flow_rate_estimated": false
         }
       ],
       "weather": {
-        "precip_total_in": 0.0,
-        "precip_display": "0.00",
-        "temp_high_f": 92.3,
+        "precip_total_in": 0.02,
+        "precip_display": "0.02",
+        "temp_high_f": 94.6,
         "temp_low_f": 56.3,
-        "temp_display": "92 / 56",
-        "humidity_avg_pct": 33.3,
+        "temp_display": "95 / 56",
+        "humidity_avg_pct": 32.9,
         "humidity_display": "33",
         "data_complete": true
       }
@@ -423,32 +423,32 @@
         {
           "key": "nectarine",
           "label": "Nectarine",
-          "duration_min": 895.0,
-          "gallons": 29.8
+          "duration_min": 915.0,
+          "gallons": 30.5
         },
         {
           "key": "apple",
           "label": "Apple",
-          "duration_min": 895.0,
-          "gallons": 29.8
+          "duration_min": 915.0,
+          "gallons": 30.5
         },
         {
           "key": "beans",
           "label": "Beans",
-          "duration_min": 895.0,
-          "gallons": 95.2
+          "duration_min": 915.0,
+          "gallons": 97.3
         },
         {
           "key": "corn",
           "label": "Corn",
-          "duration_min": 895.0,
-          "gallons": 34.5
+          "duration_min": 915.0,
+          "gallons": 35.2
         },
         {
           "key": "pumpkin",
           "label": "Pumpkin",
-          "duration_min": 895.0,
-          "gallons": 34.5
+          "duration_min": 915.0,
+          "gallons": 35.2
         }
       ],
       "weekly": [
@@ -682,32 +682,32 @@
             {
               "key": "nectarine",
               "label": "Nectarine",
-              "duration_min": 100.0,
-              "gallons": 3.3
+              "duration_min": 120.0,
+              "gallons": 4.0
             },
             {
               "key": "apple",
               "label": "Apple",
-              "duration_min": 100.0,
-              "gallons": 3.3
+              "duration_min": 120.0,
+              "gallons": 4.0
             },
             {
               "key": "beans",
               "label": "Beans",
-              "duration_min": 100.0,
-              "gallons": 10.6
+              "duration_min": 120.0,
+              "gallons": 12.8
             },
             {
               "key": "corn",
               "label": "Corn",
-              "duration_min": 100.0,
-              "gallons": 3.8
+              "duration_min": 120.0,
+              "gallons": 4.6
             },
             {
               "key": "pumpkin",
               "label": "Pumpkin",
-              "duration_min": 100.0,
-              "gallons": 3.8
+              "duration_min": 120.0,
+              "gallons": 4.6
             }
           ]
         }

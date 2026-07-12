@@ -24,3 +24,8 @@ Date,Zone Index,Zone Label,Crop,Duration (min),Gallons (est.),Precip (in),Temp H
 2026-07-10,3,Farm: outdoor,Beans,20.0,2.1,0.0,90.4,57.0,33.5
 2026-07-10,3,Farm: outdoor,Corn,20.0,0.8,0.0,90.4,57.0,33.5
 2026-07-10,3,Farm: outdoor,Pumpkin,20.0,0.8,0.0,90.4,57.0,33.5
+2026-07-11,3,Farm: outdoor,Nectarine,20.0,0.7,0.02,94.6,56.7,30.9
+2026-07-11,3,Farm: outdoor,Apple,20.0,0.7,0.02,94.6,56.7,30.9
+2026-07-11,3,Farm: outdoor,Beans,20.0,2.1,0.02,94.6,56.7,30.9
+2026-07-11,3,Farm: outdoor,Corn,20.0,0.8,0.02,94.6,56.7,30.9
+2026-07-11,3,Farm: outdoor,Pumpkin,20.0,0.8,0.02,94.6,56.7,30.9
