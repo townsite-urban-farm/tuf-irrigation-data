@@ -1,5 +1,5 @@
 {
-  "last_updated": "2026-07-15 02:09 MST",
+  "last_updated": "2026-07-16 02:13 MST",
   "season_start": "2026-05-25",
   "grant_zone": 3,
   "default_visible_zones": [
@@ -42,27 +42,27 @@
     {
       "index": 1,
       "label": "West landscaping",
-      "duration_min": 1200.0,
-      "duration_hhmm": "20:00",
-      "gallons": 240.0,
+      "duration_min": 1260.0,
+      "duration_hhmm": "21:00",
+      "gallons": 252.0,
       "flow_rate_gpm": 0.2,
       "flow_rate_estimated": false
     },
     {
       "index": 2,
       "label": "Farm: greenhouse",
-      "duration_min": 2800.0,
-      "duration_hhmm": "46:40",
-      "gallons": 1120.0,
+      "duration_min": 2860.0,
+      "duration_hhmm": "47:40",
+      "gallons": 1144.0,
       "flow_rate_gpm": 0.4,
       "flow_rate_estimated": false
     },
     {
       "index": 3,
       "label": "Farm: outdoor",
-      "duration_min": 975.0,
-      "duration_hhmm": "16:15",
-      "gallons": 243.8,
+      "duration_min": 995.0,
+      "duration_hhmm": "16:35",
+      "gallons": 248.8,
       "flow_rate_gpm": 0.25,
       "flow_rate_estimated": false
     }
@@ -427,36 +427,36 @@
         {
           "index": 1,
           "label": "West landscaping",
-          "duration_min": 0.0,
-          "duration_hhmm": "0:00",
-          "gallons": 0.0,
+          "duration_min": 60.0,
+          "duration_hhmm": "1:00",
+          "gallons": 12.0,
           "flow_rate_estimated": false
         },
         {
           "index": 2,
           "label": "Farm: greenhouse",
-          "duration_min": 120.0,
-          "duration_hhmm": "2:00",
-          "gallons": 48.0,
+          "duration_min": 180.0,
+          "duration_hhmm": "3:00",
+          "gallons": 72.0,
           "flow_rate_estimated": false
         },
         {
           "index": 3,
           "label": "Farm: outdoor",
-          "duration_min": 40.0,
-          "duration_hhmm": "0:40",
-          "gallons": 10.0,
+          "duration_min": 60.0,
+          "duration_hhmm": "1:00",
+          "gallons": 15.0,
           "flow_rate_estimated": false
         }
       ],
       "weather": {
-        "precip_total_in": 0.14,
-        "precip_display": "0.14",
+        "precip_total_in": 0.21,
+        "precip_display": "0.21",
         "temp_high_f": 88.8,
         "temp_low_f": 56.2,
         "temp_display": "89 / 56",
-        "humidity_avg_pct": 49.8,
-        "humidity_display": "50",
+        "humidity_avg_pct": 53.1,
+        "humidity_display": "53",
         "data_complete": true
       }
     }
@@ -472,32 +472,32 @@
         {
           "key": "nectarine",
           "label": "Nectarine",
-          "duration_min": 975.0,
-          "gallons": 32.5
+          "duration_min": 995.0,
+          "gallons": 33.2
         },
         {
           "key": "apple",
           "label": "Apple",
-          "duration_min": 975.0,
-          "gallons": 32.5
+          "duration_min": 995.0,
+          "gallons": 33.2
         },
         {
           "key": "beans",
           "label": "Beans",
-          "duration_min": 975.0,
-          "gallons": 103.7
+          "duration_min": 995.0,
+          "gallons": 105.8
         },
         {
           "key": "corn",
           "label": "Corn",
-          "duration_min": 975.0,
-          "gallons": 37.5
+          "duration_min": 995.0,
+          "gallons": 38.3
         },
         {
           "key": "pumpkin",
           "label": "Pumpkin",
-          "duration_min": 975.0,
-          "gallons": 37.5
+          "duration_min": 995.0,
+          "gallons": 38.3
         }
       ],
       "weekly": [
@@ -768,32 +768,32 @@
             {
               "key": "nectarine",
               "label": "Nectarine",
-              "duration_min": 40.0,
-              "gallons": 1.3
+              "duration_min": 60.0,
+              "gallons": 2.0
             },
             {
               "key": "apple",
               "label": "Apple",
-              "duration_min": 40.0,
-              "gallons": 1.3
+              "duration_min": 60.0,
+              "gallons": 2.0
             },
             {
               "key": "beans",
               "label": "Beans",
-              "duration_min": 40.0,
-              "gallons": 4.3
+              "duration_min": 60.0,
+              "gallons": 6.4
             },
             {
               "key": "corn",
               "label": "Corn",
-              "duration_min": 40.0,
-              "gallons": 1.5
+              "duration_min": 60.0,
+              "gallons": 2.3
             },
             {
               "key": "pumpkin",
               "label": "Pumpkin",
-              "duration_min": 40.0,
-              "gallons": 1.5
+              "duration_min": 60.0,
+              "gallons": 2.3
             }
           ]
         }
