@@ -25,6 +25,17 @@ Station indices in `/jl` log entries are 0-based.
 Station 99 and ≥ 64 are virtual/master entries — filtered out by `sid < 64`.
 Station 254 has appeared in controller logs (firmware artifact) — also filtered.
 
+## Special event log entries
+
+`/jl` occasionally returns special event records (rain delay, sensor, water level, ...)
+whose fields are string type codes rather than numeric station/duration values.
+One such entry (first field `'r'`) appeared in every nightly fetch window from
+2026-07-28 onward and crashed `summarize.py` (`ValueError` on `int(entry[0])`), so the
+workflow failed every night 2026-07-29 → 2026-08-11 and no data was committed for
+2026-07-28 → 2026-08-10.
+`summarize.py` now skips any entry whose fields don't parse as integers (logged as
+"Skipping non-run log entry").
+
 Zone labels come from `zone_config.json` because `/jn` (station names) returns 404
 on this firmware via OTC.
 
@@ -65,7 +76,12 @@ Update both if the season boundary changes.
 
 Nightly at 07:00 UTC (= Arizona midnight).
 Order: `recover_missing.py` → `fetch_log.py` → `summarize.py` → commit → push to website.
-`recover_missing.py` re-fetches any daily file where `irrigation` or `weather` is null.
+`recover_missing.py` re-fetches any daily file where `irrigation` or `weather` is null,
+and fetches any season date with no daily file at all (protects against runs that fail
+after fetching but before committing).
+For such backfilled dates, weather is fully recoverable (WU history API is date-addressed)
+but irrigation is limited to the `/jl` rolling window — older runs are lost unless
+recovered from the controller on the LAN, where `/jl` may honor `start`/`end`.
 
 The deploy runs only on the nightly `schedule` and manual `workflow_dispatch` — **not** on
 push. To deploy on demand: `gh workflow run fetch-and-deploy.yml`. The website is a Hugo

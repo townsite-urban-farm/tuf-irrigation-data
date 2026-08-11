@@ -103,7 +103,13 @@ def collect_all_runs(records: list[dict]) -> list[tuple[int, int, date]]:
         for entry in irr.get("logs", []):
             if len(entry) < 4:
                 continue
-            sid, dur, end_ts = int(entry[0]), int(entry[2]), int(entry[3])
+            try:
+                sid, dur, end_ts = int(entry[0]), int(entry[2]), int(entry[3])
+            except (TypeError, ValueError):
+                # Special event records (rain delay, sensor, water level, ...)
+                # carry string type codes instead of numeric fields.
+                print(f"Skipping non-run log entry: {entry!r}")
+                continue
             if sid >= 64:  # exclude master/sensor virtual stations (e.g. 99, 254)
                 continue
             if end_ts not in seen:
