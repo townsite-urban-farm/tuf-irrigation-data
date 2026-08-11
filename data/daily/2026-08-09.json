@@ -1,0 +1,16 @@
+{
+  "date": "2026-08-09",
+  "irrigation": {
+    "logs": {
+      "result": 2,
+      "item": ""
+    }
+  },
+  "weather": {
+    "precip_total_in": 0.0,
+    "temp_high_f": 90.5,
+    "temp_low_f": 57.5,
+    "temp_avg_f": 74.4,
+    "humidity_avg_pct": 40.6
+  }
+}
