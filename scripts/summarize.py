@@ -103,14 +103,17 @@ def collect_all_runs(records: list[dict]) -> list[tuple[int, int, date]]:
         for entry in irr.get("logs", []):
             if len(entry) < 4:
                 continue
+            # /jl record format: [program_id, station_id, duration_sec, end_ts].
+            # program_id 99 = manual run, 254 = run-once program — real watering,
+            # so entries are never filtered by program.
             try:
-                sid, dur, end_ts = int(entry[0]), int(entry[2]), int(entry[3])
+                pid, sid, dur, end_ts = (int(x) for x in entry[:4])
             except (TypeError, ValueError):
                 # Special event records (rain delay, sensor, water level, ...)
                 # carry string type codes instead of numeric fields.
                 print(f"Skipping non-run log entry: {entry!r}")
                 continue
-            if sid >= 64:  # exclude master/sensor virtual stations (e.g. 99, 254)
+            if sid >= 64:  # defensive: physical stations only
                 continue
             if end_ts not in seen:
                 seen[end_ts] = (sid, dur)
@@ -218,6 +221,11 @@ def main() -> None:
         for r in records
     }
 
+    # Last date the dataset covers, for weather-completeness checks
+    latest_data_date = max(
+        [date.fromisoformat(r["date"]) for r in records] + list(runs_by_date.keys())
+    )
+
     # Build weekly summaries and per-week CSVs
     WEEKLY_DIR.mkdir(parents=True, exist_ok=True)
     weekly_summaries = []
@@ -244,12 +252,12 @@ def main() -> None:
         temps_high: list[float] = []
         temps_low: list[float] = []
         humidities: list[float] = []
-        any_missing = False
+        days_with_weather: set[date] = set()
         for r in day_records:
             w = r.get("weather")
             if w is None:
-                any_missing = True
                 continue
+            days_with_weather.add(date.fromisoformat(r["date"]))
             if w.get("precip_total_in") is not None:
                 precip_total += w["precip_total_in"]
             if w.get("temp_high_f") is not None:
@@ -259,11 +267,21 @@ def main() -> None:
             if w.get("humidity_avg_pct") is not None:
                 humidities.append(w["humidity_avg_pct"])
 
+        # Weather is complete only if every day from week_start through the
+        # last date the dataset covers (or the week's end) has a weather
+        # record — days with no daily file at all count as missing.
+        expected_end = min(week_end, latest_data_date)
+        n_expected = (expected_end - week_start).days + 1
+        any_missing = len(days_with_weather) < n_expected
+        has_weather = bool(days_with_weather)
+
         humidity_avg = round(sum(humidities) / len(humidities), 1) if humidities else None
 
         weather_summary = {
-            "precip_total_in": round(precip_total, 2),
-            "precip_display": f"{precip_total:.2f}" if not any_missing else f"{precip_total:.2f}*",
+            "precip_total_in": round(precip_total, 2) if has_weather else None,
+            "precip_display": (
+                f"{precip_total:.2f}{'*' if any_missing else ''}" if has_weather else ""
+            ),
             "temp_high_f": max(temps_high) if temps_high else None,
             "temp_low_f": min(temps_low) if temps_low else None,
             "temp_display": (

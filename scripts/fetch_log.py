@@ -39,7 +39,7 @@ DATA_DIR = os.path.join(os.path.dirname(__file__), "..", "data", "daily")
 
 
 def fetch_irrigation(target: date, token: str, pw_hash: str) -> dict | None:
-    # /jl returns a JSON list directly: [[station, program, duration_sec, end_ts], ...]
+    # /jl returns a JSON list directly: [[program, station, duration_sec, end_ts], ...]
     # OTC intermittently drops the device connection and returns 404; retry up to 3 times.
     base = OTC_BASE.format(token=token)
     start_dt = datetime(target.year, target.month, target.day, 0, 0, 0, tzinfo=ARIZONA)

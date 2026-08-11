@@ -19,11 +19,18 @@ Runs are then assigned to the correct Arizona-local calendar date via their `end
 
 Do not remove or weaken this deduplication — without it, all totals are inflated ~2×.
 
-## Zone numbering
+## Log entry format (corrected 2026-08-11)
 
-Station indices in `/jl` log entries are 0-based.
-Station 99 and ≥ 64 are virtual/master entries — filtered out by `sid < 64`.
-Station 254 has appeared in controller logs (firmware artifact) — also filtered.
+`/jl` run records are `[program_id, station_id, duration_sec, end_ts]` — program FIRST,
+matching the official OpenSprinkler API docs.
+Until 2026-08-11 `summarize.py` read `entry[0]` as the station, which attributed water to
+programs instead of zones and silently dropped all manual runs (program 99) and run-once
+runs (program 254) via the `sid < 64` filter.
+Evidence for the corrected order: program IDs 99/254 are documented special values, station
+values are exactly 0–3, and consecutive entries sharing `entry[0]` are spaced exactly by
+their durations (a program running its stations sequentially).
+Manual (99) and run-once (254) programs are real watering and are included in totals.
+Station indices are 0-based; `sid < 64` is kept as a defensive filter only.
 
 ## Special event log entries
 
@@ -35,6 +42,9 @@ workflow failed every night 2026-07-29 → 2026-08-11 and no data was committed 
 2026-07-28 → 2026-08-10.
 `summarize.py` now skips any entry whose fields don't parse as integers (logged as
 "Skipping non-run log entry").
+
+The lost irrigation runs for that window were recovered on 2026-08-11 — see
+"Recovering lost irrigation logs" below.
 
 Zone labels come from `zone_config.json` because `/jn` (station names) returns 404
 on this firmware via OTC.
@@ -66,6 +76,37 @@ The deploy step copies these to the website: `crops-all-weeks.csv` has its own `
 and the per-week `*-crops.csv` files transfer via the existing `weekly/*.csv` glob. The
 website template `layouts/water-systems/water-usage.html` (in the `website` repo) renders
 `crop_breakdown` as weekly + season tables with CSV download links for the grant program team.
+
+## Recovering lost irrigation logs (procedure used 2026-08-11)
+
+If the workflow fails after fetching but before committing, daily files are never written and that night's data is gone from the runner.
+`recover_missing.py` backfills such dates automatically on the next successful run, but only weather is fully recoverable that way — the WU history API is date-addressed, while `/jl` via OTC serves only a short rolling window of recent runs.
+
+To recover older irrigation runs:
+
+1. Open the OpenSprinkler web UI (works remotely via OTC) and use the app's log export for a date range covering the gap plus a few days of padding on each side.
+   The export is the same raw `/jl` JSON array, `[[program, station, duration_sec, end_ts], ...]`; overlap with existing data is harmless because of dedup-by-end_ts.
+2. Merge the exported entries into an existing daily file that has COMPLETE weather.
+   Never use a file `recover_missing.py` might `--force` re-fetch (any file with null irrigation or weather) — the re-fetch would overwrite the merged logs with the short rolling window.
+   Which file holds an entry does not matter: `summarize.py` pools log entries from all daily files and assigns each run to its calendar date via `end_ts`.
+   Merge means appending only entries whose `end_ts` is not already in the file:
+
+   ```python
+   import json
+   p = "data/daily/YYYY-MM-DD.json"   # a file with complete weather
+   d = json.load(open(p))
+   export = json.load(open("export.json"))
+   have = {e[3] for e in d["irrigation"]["logs"] if len(e) >= 4}
+   d["irrigation"]["logs"] += [
+       e for e in export
+       if len(e) >= 4 and isinstance(e[3], int) and e[3] not in have
+   ]
+   json.dump(d, open(p, "w"), indent=2)
+   ```
+
+3. Run `python3 scripts/summarize.py` and commit the daily file together with the regenerated reports and `irrigation_summary.json`.
+
+The 2026-07-28 → 2026-08-10 gap was recovered this way into `data/daily/2026-07-27.json` (chosen because it was the newest file with complete weather).
 
 ## Season start
 
