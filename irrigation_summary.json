@@ -1,5 +1,5 @@
 {
-  "last_updated": "2026-08-31 07:58 MST",
+  "last_updated": "2026-09-01 05:23 MST",
   "season_start": "2026-05-25",
   "grant_zone": 3,
   "default_visible_zones": [
@@ -753,6 +753,55 @@
         "humidity_display": "56",
         "data_complete": true
       }
+    },
+    {
+      "week": "2026-W36",
+      "week_start": "2026-08-31",
+      "week_end": "2026-09-06",
+      "zones": [
+        {
+          "index": 0,
+          "label": "East landscaping",
+          "duration_min": 0.0,
+          "duration_hhmm": "0:00",
+          "gallons": 0.0,
+          "flow_rate_estimated": false
+        },
+        {
+          "index": 1,
+          "label": "West landscaping",
+          "duration_min": 0.0,
+          "duration_hhmm": "0:00",
+          "gallons": 0.0,
+          "flow_rate_estimated": false
+        },
+        {
+          "index": 2,
+          "label": "Farm: greenhouse",
+          "duration_min": 0.0,
+          "duration_hhmm": "0:00",
+          "gallons": 0.0,
+          "flow_rate_estimated": false
+        },
+        {
+          "index": 3,
+          "label": "Farm: outdoor",
+          "duration_min": 0.0,
+          "duration_hhmm": "0:00",
+          "gallons": 0.0,
+          "flow_rate_estimated": false
+        }
+      ],
+      "weather": {
+        "precip_total_in": 0.31,
+        "precip_display": "0.31",
+        "temp_high_f": 74.6,
+        "temp_low_f": 51.9,
+        "temp_display": "75 / 52",
+        "humidity_avg_pct": 77.9,
+        "humidity_display": "78",
+        "data_complete": true
+      }
     }
   ],
   "crop_breakdown": [
@@ -1280,6 +1329,43 @@
           "week": "2026-W35",
           "week_start": "2026-08-24",
           "week_end": "2026-08-30",
+          "crops": [
+            {
+              "key": "nectarine",
+              "label": "Nectarine",
+              "duration_min": 0.0,
+              "gallons": 0.0
+            },
+            {
+              "key": "apple",
+              "label": "Apple",
+              "duration_min": 0.0,
+              "gallons": 0.0
+            },
+            {
+              "key": "beans",
+              "label": "Beans",
+              "duration_min": 0.0,
+              "gallons": 0.0
+            },
+            {
+              "key": "corn",
+              "label": "Corn",
+              "duration_min": 0.0,
+              "gallons": 0.0
+            },
+            {
+              "key": "pumpkin",
+              "label": "Pumpkin",
+              "duration_min": 0.0,
+              "gallons": 0.0
+            }
+          ]
+        },
+        {
+          "week": "2026-W36",
+          "week_start": "2026-08-31",
+          "week_end": "2026-09-06",
           "crops": [
             {
               "key": "nectarine",

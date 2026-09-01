@@ -1,6 +1,11 @@
 {
   "date": "2026-08-30",
-  "irrigation": null,
+  "irrigation": {
+    "logs": {
+      "result": 2,
+      "item": ""
+    }
+  },
   "weather": {
     "precip_total_in": 0.0,
     "temp_high_f": 78.3,
