@@ -43,6 +43,11 @@ def main() -> None:
             d = json.load(f)
         existing.add(d["date"])
         missing = [k for k in ("irrigation", "weather") if d.get(k) is None]
+        irr = d.get("irrigation")
+        if irr is not None and not isinstance(irr.get("logs"), list):
+            # Older fetches stored the controller's error object (e.g. {"result": 2},
+            # unauthorized) as if it were a log list; re-fetch those days too.
+            missing.append("irrigation (error response)")
         if missing:
             recovered += fetch(d["date"], f"missing: {', '.join(missing)}")
 

@@ -56,6 +56,16 @@ def fetch_irrigation(target: date, token: str, pw_hash: str) -> dict | None:
             r = requests.get(f"{base}/jl", params=params, timeout=30)
             r.raise_for_status()
             logs = r.json()
+            if not isinstance(logs, list):
+                # The controller answered with an error object instead of a log list,
+                # e.g. {"result": 2} = unauthorized (password hash rejected). This is
+                # deterministic, so retrying is pointless; returning None leaves
+                # irrigation null so recover_missing.py retries on later nights.
+                log.error(
+                    "OpenSprinkler: /jl returned an error object, not a log list: %r "
+                    "(result 2 = unauthorized — check OPENSPRINKLER_PASSWORD_HASH)", logs,
+                )
+                return None
             log.info("OpenSprinkler: fetched %d log entries (attempt %d)", len(logs), attempt)
             return {"logs": logs}
         except Exception as exc:
