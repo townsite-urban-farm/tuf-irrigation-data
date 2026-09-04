@@ -15,11 +15,12 @@
     "3": {"gpm": 0.25, "type": "drip", "estimated": false}
   },
   "crop_splits": {
-    "_note": "Estimated per-crop sub-metering of a zone's gallons for grant reporting. Applied per unit of watering time: crops with 'fixed_gph' draw that many gallons per hour of the zone's run time; the remaining gallons are split among 'remainder_pct' crops. Percentages must sum to 1.0. Estimates only (not independently metered).",
+    "_note": "Estimated per-crop sub-metering of a zone's gallons for grant reporting. Applied per unit of watering time: crops with 'fixed_gph' draw that many gallons per hour of the zone's run time; the remaining gallons are split among 'remainder_pct' crops. Percentages must sum to 1.0. Estimates only (not independently metered). To add a plant to a line: append a crop with 'fixed_gph' (sum of its drippers' GPH) and 'start_date' (planting date, YYYY-MM-DD). It draws nothing before start_date; from then on its GPH is added on top of the zone's measured flow rate (the line is below capacity, so existing drippers are unaffected). Crops without start_date were on the line when the flow rate was measured.",
     "3": {
       "crops": [
         {"key": "nectarine", "label": "Nectarine", "fixed_gph": 2.0},
         {"key": "apple", "label": "Apple", "fixed_gph": 2.0},
+        {"key": "pear", "label": "Pear", "fixed_gph": 8.0, "emitters": "2 x 4 GPH drippers", "start_date": "2026-08-27"},
         {"key": "beans", "label": "Beans", "remainder_pct": 0.58, "drip_tape_ft": 100},
         {"key": "corn", "label": "Corn", "remainder_pct": 0.21, "drip_tape_ft": 36},
         {"key": "pumpkin", "label": "Pumpkin", "remainder_pct": 0.21, "drip_tape_ft": 36}

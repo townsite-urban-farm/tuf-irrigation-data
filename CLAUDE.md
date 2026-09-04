@@ -35,15 +35,46 @@ Station indices are 0-based; `sid < 64` is kept as a defensive filter only.
 ## Special event log entries
 
 `/jl` occasionally returns special event records (rain delay, sensor, water level, ...)
-whose fields are string type codes rather than numeric station/duration values.
-One such entry (first field `'r'`) appeared in every nightly fetch window from
-2026-07-28 onward and crashed `summarize.py` (`ValueError` on `int(entry[0])`), so the
-workflow failed every night 2026-07-29 → 2026-08-11 and no data was committed for
-2026-07-28 → 2026-08-10.
-`summarize.py` now skips any entry whose fields don't parse as integers (logged as
+whose fields are string type codes rather than numeric station/duration values
+(e.g. `[0, 'rd', 44, end_ts]` for a rain delay).
+`summarize.py` skips any entry whose fields don't parse as integers (logged as
 "Skipping non-run log entry").
 
-The lost irrigation runs for that window were recovered on 2026-08-11 — see
+## Controller error responses (`{"result": 2}`) — auth failure since 2026-07-28
+
+Instead of a log list, `/jl` can answer with an OpenSprinkler error object such as
+`{"result": 2, "item": ""}`.
+Result codes: 1 success, 2 unauthorized (password hash rejected), 3 mismatch, 16 data
+missing, 17 out of range, 18 data format error, 32 page not found, 48 not permitted.
+
+Every fetch from the 2026-07-28 file onward stored `{"result": 2, "item": ""}` as
+`irrigation.logs` (found 2026-09-04).
+The GitHub secrets have not changed since 2026-05-30, so the controller password (or the
+MD5 hash stored in `OPENSPRINKLER_PASSWORD_HASH`) is what changed; the OpenSprinkler app
+still authenticated on 2026-08-11 (the log export worked), so the app holds the current
+password.
+Until the hash is fixed, no irrigation runs are being recorded — the last logged run is
+2026-08-10 10:20 AZ, and the season/weekly totals flat-line from then on.
+
+This was also the true cause of the 2026-07-29 → 2026-08-11 nightly failures: iterating
+the dict yielded the key `"result"`, and `int("r")` raised `ValueError` (misdiagnosed at
+the time as a special event record whose first field was `'r'`).
+The `sid < 64`/int-parsing skip added 2026-08-11 turned the crash into a silent success.
+
+Current handling (added 2026-09-04):
+- `fetch_log.py` treats a non-list `/jl` response as a failure without retrying (it is
+  deterministic), so `irrigation` is stored as null and the workflow exits non-zero.
+- `recover_missing.py` also re-fetches any daily file whose `irrigation.logs` is not a
+  list, so the 2026-07-28 → present files are retried nightly and heal automatically
+  once the hash is fixed (subject to the `/jl` rolling window — older runs need the app
+  export procedure below).
+- `summarize.py` prints one `WARNING: <date>: irrigation logs is not a list` per such file.
+
+To fix: get the current controller password, `echo -n '<password>' | md5` (macOS), and
+update the `OPENSPRINKLER_PASSWORD_HASH` secret, then `gh workflow run fetch-and-deploy.yml`.
+Then recover 2026-08-11 → fix date via the app export procedure.
+
+The 2026-07-28 → 2026-08-10 runs were recovered on 2026-08-11 — see
 "Recovering lost irrigation logs" below.
 
 Zone labels come from `zone_config.json` because `/jn` (station names) returns 404
@@ -59,14 +90,41 @@ on this firmware via OTC.
   zone index. Each zone lists ordered `crops`; a crop has either `fixed_gph` (gallons per
   hour of the zone's run time) or `remainder_pct` (share of the gallons left after the
   fixed-rate crops). `remainder_pct` values must sum to 1.0. Currently splits zone 3
-  (Farm: outdoor) into nectarine/apple (2 GPH each) + beans/corn/pumpkin (58/21/21% of
-  the remainder). These are estimates, not independently metered.
+  (Farm: outdoor) into nectarine/apple (2 GPH each) + pear (8 GPH, since 2026-08-27) +
+  beans/corn/pumpkin (58/21/21% of the remainder). These are estimates, not independently
+  metered.
+
+### Adding a plant to a line (pattern established 2026-08-27, pear tree)
+
+Append one crop entry to the zone's `crops` list with `fixed_gph` (sum of its drippers'
+rated GPH) and `start_date` (planting date, ISO):
+
+```json
+{"key": "pear", "label": "Pear", "fixed_gph": 8.0, "emitters": "2 x 4 GPH drippers", "start_date": "2026-08-27"}
+```
+
+Semantics: the crop draws nothing before `start_date`; from that date its GPH is **added
+on top of the zone's measured `flow_rates` GPM** (the line runs below capacity, so new
+drippers do not reduce flow to the existing ones — purely additive).
+Crops without `start_date` were already on the line when the flow rate was measured and
+are part of that measurement.
+`emitters` is documentation only.
+Zone gallons, per-crop gallons, and CSVs all follow this from the start date; the website
+shows "(since YYYY-MM-DD)" next to such crops in the season-by-crop table, and weekly rows
+appear only from the week containing the start date.
+Elderberry is planned for September 2026 — same pattern.
+
+If a zone's flow rate is re-measured after additions, fold the additions into the new
+`gpm` and remove their `start_date` — but note that this changes gallons for dates before
+the re-measurement; a dated `flow_rates` history would be needed to avoid that.
 
 ## Per-crop breakdown
 
 `summarize.py` derives a per-crop breakdown from the same deduplicated zone runs (see
-`split_crops`). The split is linear in watering time, so it is applied to aggregated
-seconds at each level (season, week, per-day CSV rows) identically to splitting each run.
+`split_crops`). Because the effective flow rate can change on a crop's `start_date`, zone
+gallons and crop splits are computed per calendar date (`zone_gpm_on`, `zone_gallons`,
+`sum_crop_splits`) and summed, unrounded, into week and season totals.
+`flow_rate_gpm` in the outputs is the effective rate on the latest data date.
 Outputs: a `crop_breakdown` section in `irrigation_summary.json`, `reports/crops-all-weeks.csv`,
 and `reports/weekly/YYYY-Www-crops.csv`. Zone totals are left unchanged. Because the tree
 crops are a fixed GPH draw and the row crops absorb the remainder, the split stays correct
@@ -117,9 +175,10 @@ Update both if the season boundary changes.
 
 Nightly at 07:00 UTC (= Arizona midnight).
 Order: `recover_missing.py` → `fetch_log.py` → `summarize.py` → commit → push to website.
-`recover_missing.py` re-fetches any daily file where `irrigation` or `weather` is null,
-and fetches any season date with no daily file at all (protects against runs that fail
-after fetching but before committing).
+`recover_missing.py` re-fetches any daily file where `irrigation` or `weather` is null
+(or where `irrigation.logs` is a controller error object rather than a list), and fetches
+any season date with no daily file at all (protects against runs that fail after fetching
+but before committing).
 For such backfilled dates, weather is fully recoverable (WU history API is date-addressed)
 but irrigation is limited to the `/jl` rolling window — older runs are lost unless
 recovered from the controller on the LAN, where `/jl` may honor `start`/`end`.

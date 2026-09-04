@@ -37,29 +37,58 @@ def fmt_hhmm(minutes: float) -> str:
     return f"{total_min // 60}:{total_min % 60:02d}"
 
 
-def split_crops(total_sec: int, gpm: float, crops: list[dict]) -> list[dict]:
-    """Estimate per-crop gallons for a block of a zone's watering time.
+def crop_started(crop: dict, on: date) -> bool:
+    """True if the crop is on the line on ``on`` (no start_date = since season start)."""
+    return "start_date" not in crop or date.fromisoformat(crop["start_date"]) <= on
 
-    Crops with ``fixed_gph`` draw that many gallons per hour of run time; the
-    remaining gallons are divided among ``remainder_pct`` crops. The split is
-    linear in watering time, so aggregating durations first and splitting once
-    is identical to splitting each run and summing. The remainder is clamped at
-    zero so a very short run can never produce negative crop gallons.
+
+def added_gph(crops: list[dict], on: date) -> float:
+    """Gallons per hour added to a zone's measured flow by crops planted after
+    the flow rate was measured (those carrying a ``start_date``)."""
+    return sum(
+        c["fixed_gph"] for c in crops
+        if "fixed_gph" in c and "start_date" in c and crop_started(c, on)
+    )
+
+
+def split_crops(total_sec: int, gpm: float, crops: list[dict], on: date) -> list[dict]:
+    """Estimate per-crop gallons for one date's watering time in a zone.
+
+    ``gpm`` is the zone's effective flow rate on that date (measured base plus
+    ``added_gph``). Crops with ``fixed_gph`` draw that many gallons per hour of
+    run time; the remaining gallons are divided among ``remainder_pct`` crops.
+    A crop with a ``start_date`` draws nothing before it. The remainder is
+    clamped at zero so a very short run can never produce negative crop gallons.
+    Returns unrounded ``duration_sec`` / ``gallons`` so callers can sum across
+    dates before rounding.
     """
     hours = total_sec / 3600
     total_gal = gpm * (total_sec / 60)
-    fixed_total = sum(c["fixed_gph"] * hours for c in crops if "fixed_gph" in c)
+    active = [c for c in crops if crop_started(c, on)]
+    fixed_total = sum(c["fixed_gph"] * hours for c in active if "fixed_gph" in c)
     remainder = max(0.0, total_gal - fixed_total)
     out = []
     for c in crops:
-        gal = c["fixed_gph"] * hours if "fixed_gph" in c else remainder * c.get("remainder_pct", 0.0)
-        out.append({
-            "key": c["key"],
-            "label": c["label"],
-            "duration_min": round(total_sec / 60, 1),
-            "gallons": round(gal, 1),
-        })
+        if c not in active:
+            sec, gal = 0, 0.0
+        elif "fixed_gph" in c:
+            sec, gal = total_sec, c["fixed_gph"] * hours
+        else:
+            sec, gal = total_sec, remainder * c.get("remainder_pct", 0.0)
+        out.append({"key": c["key"], "label": c["label"], "duration_sec": sec, "gallons": gal})
     return out
+
+
+def crop_entry(crop: dict, total_sec: float, gallons: float) -> dict:
+    entry = {
+        "key": crop["key"],
+        "label": crop["label"],
+        "duration_min": round(total_sec / 60, 1),
+        "gallons": round(gallons, 1),
+    }
+    if "start_date" in crop:
+        entry["start_date"] = crop["start_date"]
+    return entry
 
 
 def iso_week_label(d: date) -> str:
@@ -100,7 +129,13 @@ def collect_all_runs(records: list[dict]) -> list[tuple[int, int, date]]:
         irr = r.get("irrigation")
         if not irr:
             continue
-        for entry in irr.get("logs", []):
+        logs = irr.get("logs", [])
+        if not isinstance(logs, list):
+            # Controller error object stored by an older fetch_log.py
+            # (e.g. {"result": 2} = unauthorized); recover_missing.py re-fetches these.
+            print(f"WARNING: {r.get('date')}: irrigation logs is not a list ({logs!r}); no runs")
+            continue
+        for entry in logs:
             if len(entry) < 4:
                 continue
             # /jl record format: [program_id, station_id, duration_sec, end_ts].
@@ -150,6 +185,14 @@ def main() -> None:
         fr = flow_rate_cfg.get(str(idx), {})
         return fr.get("gpm", 0.0), fr.get("estimated", False)
 
+    def zone_crops(idx: int) -> list[dict]:
+        return crop_splits_cfg.get(str(idx), {}).get("crops", [])
+
+    def zone_gpm_on(idx: int, on: date) -> float:
+        """Effective flow rate on a date: measured base + drippers added since measurement."""
+        base, _ = zone_flow(idx)
+        return base + added_gph(zone_crops(idx), on) / 60 if base else 0.0
+
     any_flow_estimated = any(
         flow_rate_cfg.get(str(i), {}).get("estimated", False) for i in all_indices
     )
@@ -182,6 +225,27 @@ def main() -> None:
         runs_by_week.setdefault(wk, {})
         runs_by_week[wk][sid] = runs_by_week[wk].get(sid, 0) + dur
 
+    # Last date the dataset covers, for weather-completeness checks and the
+    # "current" flow rate reported alongside totals.
+    latest_data_date = max(
+        [date.fromisoformat(r["date"]) for r in records] + list(runs_by_date.keys())
+    )
+
+    def zone_gallons(idx: int, dates) -> float:
+        """Gallons over ``dates``: each day's run time at that day's effective flow rate."""
+        return sum(
+            zone_gpm_on(idx, d) * runs_by_date.get(d, {}).get(idx, 0) / 60 for d in dates
+        )
+
+    def sum_crop_splits(idx: int, dates, crops: list[dict]) -> list[dict]:
+        acc = {c["key"]: [0.0, 0.0] for c in crops}
+        for d in dates:
+            sec = runs_by_date.get(d, {}).get(idx, 0)
+            for part in split_crops(sec, zone_gpm_on(idx, d), crops, d):
+                acc[part["key"]][0] += part["duration_sec"]
+                acc[part["key"]][1] += part["gallons"]
+        return [crop_entry(c, *acc[c["key"]]) for c in crops]
+
     # Season totals
     season_totals = []
     for i in all_indices:
@@ -194,8 +258,8 @@ def main() -> None:
             "duration_hhmm": fmt_hhmm(season_sec.get(i, 0) / 60),
         }
         if gpm:
-            entry["gallons"] = round(gpm * dur_min, 1)
-            entry["flow_rate_gpm"] = gpm
+            entry["gallons"] = round(zone_gallons(i, runs_by_date), 1)
+            entry["flow_rate_gpm"] = round(zone_gpm_on(i, latest_data_date), 3)
             entry["flow_rate_estimated"] = estimated
         season_totals.append(entry)
 
@@ -220,11 +284,6 @@ def main() -> None:
         date.fromisoformat(r["date"]): r.get("weather") or {}
         for r in records
     }
-
-    # Last date the dataset covers, for weather-completeness checks
-    latest_data_date = max(
-        [date.fromisoformat(r["date"]) for r in records] + list(runs_by_date.keys())
-    )
 
     # Build weekly summaries and per-week CSVs
     WEEKLY_DIR.mkdir(parents=True, exist_ok=True)
@@ -305,7 +364,7 @@ def main() -> None:
                 "duration_hhmm": fmt_hhmm(week_sec.get(i, 0) / 60),
             }
             if gpm:
-                entry["gallons"] = round(gpm * dur_min, 1)
+                entry["gallons"] = round(zone_gallons(i, week_dates), 1)
                 entry["flow_rate_estimated"] = estimated
             zone_entries.append(entry)
 
@@ -329,7 +388,7 @@ def main() -> None:
                 day_dur = runs_by_date.get(target_date, {})
                 w = date_to_weather.get(target_date, {})
                 for idx in all_indices:
-                    gpm, _ = zone_flow(idx)
+                    gpm = zone_gpm_on(idx, target_date)
                     dur_min = round(day_dur.get(idx, 0) / 60, 1)
                     gallons = round(gpm * dur_min, 1) if gpm else ""
                     writer.writerow([
@@ -357,10 +416,10 @@ def main() -> None:
                 for target_date in week_dates:
                     day_dur = runs_by_date.get(target_date, {})
                     w = date_to_weather.get(target_date, {})
-                    for zi_str, cfg_z in crop_splits_cfg.items():
+                    for zi_str in crop_splits_cfg:
                         zi = int(zi_str)
-                        gpm, _ = zone_flow(zi)
-                        for crop in split_crops(day_dur.get(zi, 0), gpm, cfg_z.get("crops", [])):
+                        crops = [c for c in zone_crops(zi) if crop_started(c, target_date)]
+                        for crop in sum_crop_splits(zi, [target_date], crops):
                             writer.writerow([
                                 target_date.isoformat(),
                                 zi,
@@ -403,26 +462,29 @@ def main() -> None:
     # Per-crop breakdown (estimated grant sub-metering) for zones in crop_splits.
     # Derived from the same deduplicated runs as the zone totals.
     crop_breakdown = []
-    for zi_str, cfg_z in crop_splits_cfg.items():
+    for zi_str in crop_splits_cfg:
         zi = int(zi_str)
-        gpm, estimated = zone_flow(zi)
-        crops = cfg_z.get("crops", [])
-        weekly_crops = [
-            {
+        _, estimated = zone_flow(zi)
+        crops = zone_crops(zi)
+        weekly_crops = []
+        for wk in weekly_summaries:
+            week_end = date.fromisoformat(wk["week_end"])
+            week_dates = sorted(all_dates_by_week.get(wk["week"], set()))
+            weekly_crops.append({
                 "week": wk["week"],
                 "week_start": wk["week_start"],
                 "week_end": wk["week_end"],
-                "crops": split_crops(runs_by_week.get(wk["week"], {}).get(zi, 0), gpm, crops),
-            }
-            for wk in weekly_summaries
-        ]
+                "crops": sum_crop_splits(
+                    zi, week_dates, [c for c in crops if crop_started(c, week_end)]
+                ),
+            })
         crop_breakdown.append({
             "zone_index": zi,
             "zone_label": zone_label(zi),
-            "flow_rate_gpm": gpm,
+            "flow_rate_gpm": round(zone_gpm_on(zi, latest_data_date), 3),
             "flow_rate_estimated": estimated,
             "estimated": True,
-            "season": split_crops(season_sec.get(zi, 0), gpm, crops),
+            "season": sum_crop_splits(zi, runs_by_date, crops),
             "weekly": weekly_crops,
         })
 
