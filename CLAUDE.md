@@ -166,10 +166,36 @@ To recover older irrigation runs:
 
 The 2026-07-28 → 2026-08-10 gap was recovered this way into `data/daily/2026-07-27.json` (chosen because it was the newest file with complete weather).
 
-## Season start
+## Season start / end
 
 `SEASON_START = date(2026, 5, 25)` in both `fetch_log.py` and `summarize.py`.
 Update both if the season boundary changes.
+
+`SEASON_END` (in `fetch_log.py`, default `None`) is read only by `check_health.py`.
+The controller stays powered on over winter with its programs stopped, so once the last
+program is stopped set `SEASON_END` to that date to silence the "no runs logged" alert;
+set it back to `None` (and update `SEASON_START`) when the next season begins.
+
+## Failure notifications (added 2026-09-04)
+
+Every data-fetch step in the workflow is deliberately non-fatal so partial data is still
+committed (a fatal fetch step is how the 2026-07-28 → 08-10 runs were lost).
+Alerting therefore comes from a final `Check data health` step (`scripts/check_health.py`)
+that runs after both pushes and exits 1 when:
+
+- yesterday's daily file is missing, or its irrigation is null / not a list, or weather is null;
+- no irrigation run has been logged in the last 3 days while in season (see `SEASON_END`).
+
+A red run triggers GitHub's built-in "Run failed" email to the workflow actor.
+For `schedule` runs the actor is whoever last committed the workflow file, so the person
+who should receive alerts must be the one to commit changes to
+`.github/workflows/fetch-and-deploy.yml`.
+Notification settings are not exposed via the API/`gh`; check
+https://github.com/settings/notifications ("Actions" → failed workflows only, email) and
+custom routing for the `townsite-urban-farm` org.
+
+To test end-to-end: `gh workflow run fetch-and-deploy.yml -f simulate_failure=true`
+forces the health check to fail after a normal (data-committing) run.
 
 ## Workflow
 

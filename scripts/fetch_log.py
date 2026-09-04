@@ -30,6 +30,9 @@ logging.basicConfig(level=logging.INFO, format="%(levelname)s: %(message)s")
 log = logging.getLogger(__name__)
 
 SEASON_START = date(2026, 5, 25)
+# Set when programs are stopped for the season (controller stays powered on) so
+# check_health.py stops alerting about missing runs. None = season still running.
+SEASON_END: date | None = None
 ARIZONA = ZoneInfo("America/Phoenix")
 WU_STATION = "KAZFLAGS562"
 OTC_BASE = "https://cloud.openthings.io/forward/v1/{token}"

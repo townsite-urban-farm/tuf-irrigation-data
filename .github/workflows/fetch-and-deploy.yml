@@ -4,6 +4,11 @@ on:
   schedule:
     - cron: '0 7 * * *'  # 7 AM UTC = midnight Arizona MST (UTC-7, no DST)
   workflow_dispatch:
+    inputs:
+      simulate_failure:
+        description: "Force the data health check to fail (tests failure notifications)"
+        type: boolean
+        default: false
 
 permissions:
   contents: write
@@ -80,3 +85,11 @@ jobs:
           git diff --cached --quiet \
             || git commit -m "MAINT: update irrigation data $(date -u +%Y-%m-%d)"
           git push
+
+      # Last, after data is committed and deployed: a red run means "look at this"
+      # without blocking the pipeline. GitHub emails the workflow actor on failure.
+      - name: Check data health
+        shell: bash -el {0}
+        run: >
+          python scripts/check_health.py
+          ${{ inputs.simulate_failure == true && '--simulate-failure' || '' }}
