@@ -19,3 +19,7 @@ Date,Zone Index,Zone Label,Duration (min),Gallons (est.),Precip (in),Temp High (
 2026-09-11,1,West landscaping,0.0,0.0,0.01,82.4,53.9,62.6
 2026-09-11,2,Farm: greenhouse,40.0,16.0,0.01,82.4,53.9,62.6
 2026-09-11,3,Farm: outdoor,40.0,15.3,0.01,82.4,53.9,62.6
+2026-09-12,0,East landscaping,30.0,15.0,0.0,81.2,56.6,68.8
+2026-09-12,1,West landscaping,0.0,0.0,0.0,81.2,56.6,68.8
+2026-09-12,2,Farm: greenhouse,40.0,16.0,0.0,81.2,56.6,68.8
+2026-09-12,3,Farm: outdoor,40.0,15.3,0.0,81.2,56.6,68.8
