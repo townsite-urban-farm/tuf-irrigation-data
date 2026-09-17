@@ -1,5 +1,5 @@
 {
-  "last_updated": "2026-09-16 05:26 MST",
+  "last_updated": "2026-09-17 05:27 MST",
   "season_start": "2026-05-25",
   "grant_zone": 3,
   "default_visible_zones": [
@@ -891,13 +891,13 @@
         }
       ],
       "weather": {
-        "precip_total_in": 0.0,
-        "precip_display": "0.00",
+        "precip_total_in": 0.34,
+        "precip_display": "0.34",
         "temp_high_f": 80.7,
-        "temp_low_f": 56.0,
-        "temp_display": "81 / 56",
-        "humidity_avg_pct": 66.2,
-        "humidity_display": "66",
+        "temp_low_f": 53.4,
+        "temp_display": "81 / 53",
+        "humidity_avg_pct": 73.3,
+        "humidity_display": "73",
         "data_complete": true
       }
     }
