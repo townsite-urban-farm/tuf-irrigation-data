@@ -1,5 +1,5 @@
 {
-  "last_updated": "2026-09-17 05:27 MST",
+  "last_updated": "2026-09-18 05:06 MST",
   "season_start": "2026-05-25",
   "grant_zone": 3,
   "default_visible_zones": [
@@ -33,36 +33,36 @@
     {
       "index": 0,
       "label": "East landscaping",
-      "duration_min": 1446.0,
-      "duration_hhmm": "24:06",
-      "gallons": 723.0,
+      "duration_min": 1476.0,
+      "duration_hhmm": "24:36",
+      "gallons": 738.0,
       "flow_rate_gpm": 0.5,
       "flow_rate_estimated": false
     },
     {
       "index": 1,
       "label": "West landscaping",
-      "duration_min": 1351.0,
-      "duration_hhmm": "22:31",
-      "gallons": 270.2,
+      "duration_min": 1381.0,
+      "duration_hhmm": "23:01",
+      "gallons": 276.2,
       "flow_rate_gpm": 0.2,
       "flow_rate_estimated": false
     },
     {
       "index": 2,
       "label": "Farm: greenhouse",
-      "duration_min": 4529.7,
-      "duration_hhmm": "75:30",
-      "gallons": 1811.9,
+      "duration_min": 4609.7,
+      "duration_hhmm": "76:50",
+      "gallons": 1843.9,
       "flow_rate_gpm": 0.4,
       "flow_rate_estimated": false
     },
     {
       "index": 3,
       "label": "Farm: outdoor",
-      "duration_min": 4247.9,
-      "duration_hhmm": "70:48",
-      "gallons": 1164.6,
+      "duration_min": 4327.9,
+      "duration_hhmm": "72:08",
+      "gallons": 1195.3,
       "flow_rate_gpm": 0.383,
       "flow_rate_estimated": false
     }
@@ -860,44 +860,44 @@
         {
           "index": 0,
           "label": "East landscaping",
-          "duration_min": 0.0,
-          "duration_hhmm": "0:00",
-          "gallons": 0.0,
+          "duration_min": 30.0,
+          "duration_hhmm": "0:30",
+          "gallons": 15.0,
           "flow_rate_estimated": false
         },
         {
           "index": 1,
           "label": "West landscaping",
-          "duration_min": 0.0,
-          "duration_hhmm": "0:00",
-          "gallons": 0.0,
+          "duration_min": 30.0,
+          "duration_hhmm": "0:30",
+          "gallons": 6.0,
           "flow_rate_estimated": false
         },
         {
           "index": 2,
           "label": "Farm: greenhouse",
-          "duration_min": 80.0,
-          "duration_hhmm": "1:20",
-          "gallons": 32.0,
+          "duration_min": 160.0,
+          "duration_hhmm": "2:40",
+          "gallons": 64.0,
           "flow_rate_estimated": false
         },
         {
           "index": 3,
           "label": "Farm: outdoor",
-          "duration_min": 80.0,
-          "duration_hhmm": "1:20",
-          "gallons": 30.7,
+          "duration_min": 160.0,
+          "duration_hhmm": "2:40",
+          "gallons": 61.3,
           "flow_rate_estimated": false
         }
       ],
       "weather": {
         "precip_total_in": 0.34,
         "precip_display": "0.34",
-        "temp_high_f": 80.7,
-        "temp_low_f": 53.4,
-        "temp_display": "81 / 53",
-        "humidity_avg_pct": 73.3,
-        "humidity_display": "73",
+        "temp_high_f": 87.1,
+        "temp_low_f": 51.5,
+        "temp_display": "87 / 52",
+        "humidity_avg_pct": 74.5,
+        "humidity_display": "74",
         "data_complete": true
       }
     }
@@ -913,39 +913,39 @@
         {
           "key": "nectarine",
           "label": "Nectarine",
-          "duration_min": 4247.9,
-          "gallons": 141.6
+          "duration_min": 4327.9,
+          "gallons": 144.3
         },
         {
           "key": "apple",
           "label": "Apple",
-          "duration_min": 4247.9,
-          "gallons": 141.6
+          "duration_min": 4327.9,
+          "gallons": 144.3
         },
         {
           "key": "pear",
           "label": "Pear",
-          "duration_min": 770.0,
-          "gallons": 102.7,
+          "duration_min": 850.0,
+          "gallons": 113.3,
           "start_date": "2026-08-27"
         },
         {
           "key": "beans",
           "label": "Beans",
-          "duration_min": 4247.9,
-          "gallons": 451.7
+          "duration_min": 4327.9,
+          "gallons": 460.2
         },
         {
           "key": "corn",
           "label": "Corn",
-          "duration_min": 4247.9,
-          "gallons": 163.5
+          "duration_min": 4327.9,
+          "gallons": 166.6
         },
         {
           "key": "pumpkin",
           "label": "Pumpkin",
-          "duration_min": 4247.9,
-          "gallons": 163.5
+          "duration_min": 4327.9,
+          "gallons": 166.6
         }
       ],
       "weekly": [
@@ -1570,39 +1570,39 @@
             {
               "key": "nectarine",
               "label": "Nectarine",
-              "duration_min": 80.0,
-              "gallons": 2.7
+              "duration_min": 160.0,
+              "gallons": 5.3
             },
             {
               "key": "apple",
               "label": "Apple",
-              "duration_min": 80.0,
-              "gallons": 2.7
+              "duration_min": 160.0,
+              "gallons": 5.3
             },
             {
               "key": "pear",
               "label": "Pear",
-              "duration_min": 80.0,
-              "gallons": 10.7,
+              "duration_min": 160.0,
+              "gallons": 21.3,
               "start_date": "2026-08-27"
             },
             {
               "key": "beans",
               "label": "Beans",
-              "duration_min": 80.0,
-              "gallons": 8.5
+              "duration_min": 160.0,
+              "gallons": 17.0
             },
             {
               "key": "corn",
               "label": "Corn",
-              "duration_min": 80.0,
-              "gallons": 3.1
+              "duration_min": 160.0,
+              "gallons": 6.2
             },
             {
               "key": "pumpkin",
               "label": "Pumpkin",
-              "duration_min": 80.0,
-              "gallons": 3.1
+              "duration_min": 160.0,
+              "gallons": 6.2
             }
           ]
         }
