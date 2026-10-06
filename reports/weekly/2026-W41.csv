@@ -1,5 +1,5 @@
 Date,Zone Index,Zone Label,Duration (min),Gallons (est.),Precip (in),Temp High (°F),Temp Low (°F),Humidity Avg (%)
-2026-10-05,0,East landscaping,0.0,0.0,,,,
-2026-10-05,1,West landscaping,0.0,0.0,,,,
-2026-10-05,2,Farm: greenhouse,30.0,12.0,,,,
-2026-10-05,3,Farm: outdoor,30.0,11.5,,,,
+2026-10-05,0,East landscaping,0.0,0.0,0.0,73.8,40.4,57.3
+2026-10-05,1,West landscaping,0.0,0.0,0.0,73.8,40.4,57.3
+2026-10-05,2,Farm: greenhouse,40.0,16.0,0.0,73.8,40.4,57.3
+2026-10-05,3,Farm: outdoor,40.0,15.3,0.0,73.8,40.4,57.3
