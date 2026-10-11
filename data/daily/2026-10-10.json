@@ -1,0 +1,26 @@
+{
+  "date": "2026-10-10",
+  "irrigation": {
+    "logs": [
+      [
+        1,
+        0,
+        1800,
+        1791696601
+      ],
+      [
+        1,
+        1,
+        1800,
+        1791698401
+      ]
+    ]
+  },
+  "weather": {
+    "precip_total_in": 0.24,
+    "temp_high_f": 65.7,
+    "temp_low_f": 45.9,
+    "temp_avg_f": 54.4,
+    "humidity_avg_pct": 81.0
+  }
+}
