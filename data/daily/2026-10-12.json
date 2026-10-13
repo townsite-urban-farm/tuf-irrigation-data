@@ -1,0 +1,11 @@
+{
+  "date": "2026-10-12",
+  "irrigation": null,
+  "weather": {
+    "precip_total_in": 0.54,
+    "temp_high_f": 53.2,
+    "temp_low_f": 43.9,
+    "temp_avg_f": 48.4,
+    "humidity_avg_pct": 88.2
+  }
+}
