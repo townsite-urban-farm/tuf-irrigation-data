@@ -1,5 +1,5 @@
 {
-  "last_updated": "2026-10-13 07:50 MST",
+  "last_updated": "2026-10-14 05:40 MST",
   "season_start": "2026-05-25",
   "grant_zone": 3,
   "default_visible_zones": [
@@ -33,9 +33,9 @@
     {
       "index": 0,
       "label": "East landscaping",
-      "duration_min": 1746.0,
-      "duration_hhmm": "29:06",
-      "gallons": 873.0,
+      "duration_min": 1776.0,
+      "duration_hhmm": "29:36",
+      "gallons": 888.0,
       "flow_rate_gpm": 0.5,
       "flow_rate_estimated": false
     },
@@ -1056,9 +1056,9 @@
         {
           "index": 0,
           "label": "East landscaping",
-          "duration_min": 0.0,
-          "duration_hhmm": "0:00",
-          "gallons": 0.0,
+          "duration_min": 30.0,
+          "duration_hhmm": "0:30",
+          "gallons": 15.0,
           "flow_rate_estimated": false
         },
         {
@@ -1087,13 +1087,13 @@
         }
       ],
       "weather": {
-        "precip_total_in": 0.54,
-        "precip_display": "0.54",
-        "temp_high_f": 53.2,
-        "temp_low_f": 43.9,
-        "temp_display": "53 / 44",
-        "humidity_avg_pct": 88.2,
-        "humidity_display": "88",
+        "precip_total_in": 0.68,
+        "precip_display": "0.68",
+        "temp_high_f": 54.2,
+        "temp_low_f": 39.8,
+        "temp_display": "54 / 40",
+        "humidity_avg_pct": 86.1,
+        "humidity_display": "86",
         "data_complete": true
       }
     }
