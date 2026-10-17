@@ -1,6 +1,8 @@
 {
   "date": "2026-10-15",
-  "irrigation": null,
+  "irrigation": {
+    "logs": []
+  },
   "weather": {
     "precip_total_in": 0.02,
     "temp_high_f": 56.1,
