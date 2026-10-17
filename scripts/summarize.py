@@ -9,20 +9,26 @@ Writes:
   irrigation_summary.json         — consumed by Hugo website template
   reports/all-weeks.csv           — full-season download
   reports/weekly/YYYY-Www.csv     — one per ISO week
+  --zones 2,3 [--out PATH]        — additionally, the all-weeks table restricted to those
+                                    zones plus one season-total row per zone (end-of-season
+                                    report for a subset of stations)
 
-Note on deduplication: the /jl API via OTC ignores start/end time parameters and returns
-a rolling window of recent entries. Consecutive daily fetches therefore overlap — the same
-run appears in two daily files. We deduplicate by end_ts (unique per physical run) before
-aggregating, then assign each run to the correct Arizona-local date via its end_ts.
+Note on deduplication: daily fetches used to request a window shifted 7 h late (see
+fetch_log.py), so consecutive daily files overlap — the same run appears in two files.
+We deduplicate by end_ts (unique per physical run) before aggregating, then assign each
+run to its calendar date via end_ts, which the controller stamps in local time.
 """
 
+import argparse
 import csv
 import json
-from datetime import date, datetime, timedelta
+from datetime import date, datetime, timedelta, timezone
 from pathlib import Path
 from zoneinfo import ZoneInfo
 
+# Keep in sync with fetch_log.py (summarize.py stays importable without `requests`).
 SEASON_START = date(2026, 5, 25)
+SEASON_END: date | None = date(2026, 10, 9)
 ARIZONA = ZoneInfo("America/Phoenix")
 ROOT = Path(__file__).parent.parent
 DATA_DIR = ROOT / "data" / "daily"
@@ -113,16 +119,20 @@ def load_daily_records() -> list[dict]:
     for path in sorted(DATA_DIR.glob("[0-9]*.json")):
         with open(path) as f:
             records.append(json.load(f))
-    return [r for r in records if date.fromisoformat(r["date"]) >= SEASON_START]
+    return [r for r in records if in_season(date.fromisoformat(r["date"]))]
+
+
+def in_season(d: date) -> bool:
+    return SEASON_START <= d and (SEASON_END is None or d <= SEASON_END)
 
 
 def collect_all_runs(records: list[dict]) -> list[tuple[int, int, date]]:
     """Return deduplicated (station_idx, duration_sec, az_date) for every physical irrigation run.
 
-    Deduplicates by end_ts: the /jl API returns overlapping windows across consecutive nightly
-    fetches, so the same run appears in multiple daily files. Each physical run has a unique
-    end_ts, so deduplication by end_ts gives exactly one entry per run. The Arizona-local date
-    of end_ts is used to assign the run to the correct calendar day.
+    Deduplicates by end_ts: nightly fetches overlap, so the same run appears in multiple daily
+    files. Each physical run has a unique end_ts, so deduplication by end_ts gives exactly one
+    entry per run. The controller stamps end_ts in local (Arizona) time expressed as epoch
+    seconds, so reading it as a UTC clock yields the local date of the run.
     """
     seen: dict[int, tuple[int, int]] = {}  # end_ts → (station, duration)
     for r in records:
@@ -155,12 +165,117 @@ def collect_all_runs(records: list[dict]) -> list[tuple[int, int, date]]:
 
     runs = []
     for end_ts, (sid, dur) in seen.items():
-        az_date = datetime.fromtimestamp(end_ts, tz=ARIZONA).date()
+        az_date = datetime.fromtimestamp(end_ts, tz=timezone.utc).date()
         runs.append((sid, dur, az_date))
     return sorted(runs, key=lambda x: x[2])
 
 
+def parse_args() -> argparse.Namespace:
+    parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
+    parser.add_argument(
+        "--zones",
+        help="Comma-separated zone indices; also write the all-weeks table for just these zones.",
+    )
+    parser.add_argument(
+        "--out",
+        help="Path for the --zones CSV (default: reports/all-weeks-zones-<indices>.csv).",
+    )
+    args = parser.parse_args()
+    args.zone_list = sorted(int(z) for z in args.zones.split(",")) if args.zones else []
+    if args.zone_list and not args.out:
+        args.out = REPORTS_DIR / f"all-weeks-zones-{'-'.join(map(str, args.zone_list))}.csv"
+    return args
+
+
+def write_weeks_csv(path: Path, weekly_summaries: list[dict], zone_indices, season_rows=()) -> None:
+    """One row per week × zone, optionally followed by one season-total row per zone."""
+    with open(path, "w", newline="") as f:
+        writer = csv.writer(f)
+        writer.writerow([
+            "Week", "Week Start", "Week End", "Zone Index", "Zone Label",
+            "Duration (min)", "Gallons (est.)", "Precip (in)",
+            "Temp High (°F)", "Temp Low (°F)", "Humidity Avg (%)",
+        ])
+        for wk in weekly_summaries:
+            for ze in wk["zones"]:
+                if ze["index"] not in zone_indices:
+                    continue
+                w = wk["weather"]
+                writer.writerow([
+                    wk["week"],
+                    wk["week_start"],
+                    wk["week_end"],
+                    ze["index"],
+                    ze["label"],
+                    ze["duration_min"],
+                    ze.get("gallons", ""),
+                    w.get("precip_total_in", ""),
+                    w.get("temp_high_f", ""),
+                    w.get("temp_low_f", ""),
+                    w.get("humidity_avg_pct", ""),
+                ])
+        for st in season_rows:
+            if st["index"] in zone_indices:
+                writer.writerow([
+                    "Season total",
+                    SEASON_START.isoformat(),
+                    SEASON_END.isoformat() if SEASON_END else "",
+                    st["index"],
+                    st["label"],
+                    st["duration_min"],
+                    st.get("gallons", ""),
+                    "", "", "", "",
+                ])
+
+
+def write_crops_csv(path: Path, crop_breakdown: list[dict], week_weather: dict,
+                    zone_indices, include_season: bool = False) -> None:
+    """One row per week × crop for each split zone, optionally followed by
+    one season-total row per crop."""
+    with open(path, "w", newline="") as f:
+        writer = csv.writer(f)
+        writer.writerow([
+            "Week", "Week Start", "Week End", "Zone Index", "Zone Label", "Crop",
+            "Duration (min)", "Gallons (est.)", "Precip (in)",
+            "Temp High (°F)", "Temp Low (°F)", "Humidity Avg (%)",
+        ])
+        for zb in crop_breakdown:
+            if zb["zone_index"] not in zone_indices:
+                continue
+            for wk in zb["weekly"]:
+                w = week_weather.get(wk["week"], {})
+                for crop in wk["crops"]:
+                    writer.writerow([
+                        wk["week"],
+                        wk["week_start"],
+                        wk["week_end"],
+                        zb["zone_index"],
+                        zb["zone_label"],
+                        crop["label"],
+                        crop["duration_min"],
+                        crop["gallons"],
+                        w.get("precip_total_in", ""),
+                        w.get("temp_high_f", ""),
+                        w.get("temp_low_f", ""),
+                        w.get("humidity_avg_pct", ""),
+                    ])
+            if include_season:
+                for crop in zb["season"]:
+                    writer.writerow([
+                        "Season total",
+                        SEASON_START.isoformat(),
+                        SEASON_END.isoformat() if SEASON_END else "",
+                        zb["zone_index"],
+                        zb["zone_label"],
+                        crop["label"],
+                        crop["duration_min"],
+                        crop["gallons"],
+                        "", "", "", "",
+                    ])
+
+
 def main() -> None:
+    args = parse_args()
     config = load_zone_config()
     grant_zone: int = config["grant_zone"]
     label_overrides: dict[str, str] = config.get("labels", {})
@@ -171,7 +286,7 @@ def main() -> None:
     }
 
     records = load_daily_records()
-    print(f"Loaded {len(records)} daily records from {SEASON_START} onward.")
+    print(f"Loaded {len(records)} daily records from {SEASON_START} to {SEASON_END or 'present'}.")
 
     # Enumerate all zones from zone_config.json labels (not discovered from log entries)
     # so zones that haven't run yet still appear in the output.
@@ -216,7 +331,7 @@ def main() -> None:
     runs_by_week: dict[str, dict[int, int]] = {}    # week_label → {sid: total_sec}
 
     for sid, dur, az_date in all_runs:
-        if sid not in all_indices_set or az_date < SEASON_START:
+        if sid not in all_indices_set or not in_season(az_date):
             continue
         season_sec[sid] = season_sec.get(sid, 0) + dur
         runs_by_date.setdefault(az_date, {})
@@ -301,7 +416,7 @@ def main() -> None:
         anchor = date.fromisoformat(day_records[0]["date"]) if day_records else week_dates[0]
         monday, sunday = week_bounds(anchor)
         week_start = max(monday, SEASON_START)
-        week_end = sunday
+        week_end = min(sunday, SEASON_END) if SEASON_END else sunday
 
         # Irrigation totals from deduplicated runs
         week_sec = runs_by_week.get(wk_label, {})
@@ -435,29 +550,7 @@ def main() -> None:
 
     # All-weeks CSV: one row per week × zone
     all_csv_path = REPORTS_DIR / "all-weeks.csv"
-    with open(all_csv_path, "w", newline="") as f:
-        writer = csv.writer(f)
-        writer.writerow([
-            "Week", "Week Start", "Week End", "Zone Index", "Zone Label",
-            "Duration (min)", "Gallons (est.)", "Precip (in)",
-            "Temp High (°F)", "Temp Low (°F)", "Humidity Avg (%)",
-        ])
-        for wk in weekly_summaries:
-            for ze in wk["zones"]:
-                w = wk["weather"]
-                writer.writerow([
-                    wk["week"],
-                    wk["week_start"],
-                    wk["week_end"],
-                    ze["index"],
-                    ze["label"],
-                    ze["duration_min"],
-                    ze.get("gallons", ""),
-                    w.get("precip_total_in", ""),
-                    w.get("temp_high_f", ""),
-                    w.get("temp_low_f", ""),
-                    w.get("humidity_avg_pct", ""),
-                ])
+    write_weeks_csv(all_csv_path, weekly_summaries, all_indices_set)
 
     # Per-crop breakdown (estimated grant sub-metering) for zones in crop_splits.
     # Derived from the same deduplicated runs as the zone totals.
@@ -489,39 +582,30 @@ def main() -> None:
         })
 
     # All-weeks crop CSV: one row per week × crop for each split zone
+    week_weather = {wk["week"]: wk["weather"] for wk in weekly_summaries}
     if crop_splits_cfg:
-        crops_all_csv_path = REPORTS_DIR / "crops-all-weeks.csv"
-        with open(crops_all_csv_path, "w", newline="") as f:
-            writer = csv.writer(f)
-            writer.writerow([
-                "Week", "Week Start", "Week End", "Zone Index", "Zone Label", "Crop",
-                "Duration (min)", "Gallons (est.)", "Precip (in)",
-                "Temp High (°F)", "Temp Low (°F)", "Humidity Avg (%)",
-            ])
-            week_weather = {wk["week"]: wk["weather"] for wk in weekly_summaries}
-            for zb in crop_breakdown:
-                for wk in zb["weekly"]:
-                    w = week_weather.get(wk["week"], {})
-                    for crop in wk["crops"]:
-                        writer.writerow([
-                            wk["week"],
-                            wk["week_start"],
-                            wk["week_end"],
-                            zb["zone_index"],
-                            zb["zone_label"],
-                            crop["label"],
-                            crop["duration_min"],
-                            crop["gallons"],
-                            w.get("precip_total_in", ""),
-                            w.get("temp_high_f", ""),
-                            w.get("temp_low_f", ""),
-                            w.get("humidity_avg_pct", ""),
-                        ])
+        write_crops_csv(REPORTS_DIR / "crops-all-weeks.csv", crop_breakdown, week_weather, all_indices_set)
+
+    # Optional subset report (e.g. the farm stations for the end-of-season report, or the
+    # grant zone alone): the all-weeks table plus season totals, and — when a selected zone
+    # has crop splits — the same for its per-crop breakdown as <out stem>-crops.csv.
+    if args.zone_list:
+        unknown = sorted(set(args.zone_list) - all_indices_set)
+        if unknown:
+            raise SystemExit(f"--zones: unknown zone index {unknown}; known: {all_indices}")
+        out = Path(args.out)
+        write_weeks_csv(out, weekly_summaries, set(args.zone_list), season_totals)
+        print(f"Wrote zones {args.zone_list} report to {out}")
+        if any(zb["zone_index"] in args.zone_list for zb in crop_breakdown):
+            crops_out = out.with_name(f"{out.stem}-crops.csv")
+            write_crops_csv(crops_out, crop_breakdown, week_weather, set(args.zone_list), include_season=True)
+            print(f"Wrote zones {args.zone_list} per-crop report to {crops_out}")
 
     # Summary JSON for Hugo
     summary = {
         "last_updated": datetime.now(ZoneInfo("America/Phoenix")).strftime("%Y-%m-%d %H:%M MST"),
         "season_start": SEASON_START.isoformat(),
+        "season_end": SEASON_END.isoformat() if SEASON_END else None,
         "grant_zone": grant_zone,
         "default_visible_zones": default_visible_zones,
         "flow_rate_estimated": any_flow_estimated,

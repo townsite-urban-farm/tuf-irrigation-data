@@ -19,7 +19,7 @@ import json
 import logging
 import os
 import sys
-from datetime import date, datetime, timedelta
+from datetime import date, datetime, timedelta, timezone
 from zoneinfo import ZoneInfo
 
 import time
@@ -30,9 +30,10 @@ logging.basicConfig(level=logging.INFO, format="%(levelname)s: %(message)s")
 log = logging.getLogger(__name__)
 
 SEASON_START = date(2026, 5, 25)
-# Set when programs are stopped for the season (controller stays powered on) so
-# check_health.py stops alerting about missing runs. None = season still running.
-SEASON_END: date | None = None
+# Last day of the reporting season (the farm programs' last run). summarize.py
+# clips reports to it and check_health.py stops checking after it. None = season
+# still running. Set back to None (and update SEASON_START) when the next season begins.
+SEASON_END: date | None = date(2026, 10, 9)
 ARIZONA = ZoneInfo("America/Phoenix")
 WU_STATION = "KAZFLAGS562"
 OTC_BASE = "https://cloud.openthings.io/forward/v1/{token}"
@@ -43,9 +44,14 @@ DATA_DIR = os.path.join(os.path.dirname(__file__), "..", "data", "daily")
 
 def fetch_irrigation(target: date, token: str, pw_hash: str) -> dict | None:
     # /jl returns a JSON list directly: [[program, station, duration_sec, end_ts], ...]
+    # The controller keeps its clock and log timestamps in LOCAL time expressed as
+    # epoch seconds (the local wall clock read as if it were UTC), and start/end are
+    # compared against those, so the requested day is built the same way. Using the
+    # true UTC epoch of Arizona midnight shifted the window 7 h late, which is why
+    # fetches used to return the next morning's runs as well (see CLAUDE.md).
     # OTC intermittently drops the device connection and returns 404; retry up to 3 times.
     base = OTC_BASE.format(token=token)
-    start_dt = datetime(target.year, target.month, target.day, 0, 0, 0, tzinfo=ARIZONA)
+    start_dt = datetime(target.year, target.month, target.day, 0, 0, 0, tzinfo=timezone.utc)
     end_dt = start_dt + timedelta(days=1) - timedelta(seconds=1)
     params = {
         "pw": pw_hash,

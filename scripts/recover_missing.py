@@ -6,10 +6,10 @@ when a later workflow step failed before the commit step).
 Called by the nightly workflow before fetch_log.py so that transient API
 failures from previous runs are retried automatically.
 
-Note: weather is fully recoverable for past dates (the WU history API is
-date-addressed), but OpenSprinkler /jl via OTC only returns a rolling
-window of recent entries, so irrigation runs older than that window
-cannot be recovered here.
+Note: both sources are date-addressed (the WU history API by date, and the
+controller's /jl by start/end in its local-time epoch, see fetch_log.py), so
+any past day can be re-fetched as long as the controller is reachable and
+still holds the log.
 """
 
 import json

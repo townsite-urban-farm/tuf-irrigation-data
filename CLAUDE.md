@@ -4,20 +4,33 @@ Automated daily irrigation + weather logging for Townsite Urban Farm.
 Data is fetched nightly via GitHub Actions and cross-pushed to the website repo.
 See README for full architecture.
 
-## Critical API quirk: /jl returns overlapping windows
+## Critical API quirk: the controller's clock is local time stored as an epoch
 
-The OpenSprinkler `/jl` log endpoint via OTC (OpenThings Cloud) **ignores the `start`/`end`
-time-window parameters** and returns a rolling window of recent entries regardless of the
-requested range.
-Consecutive nightly fetches therefore overlap — the same physical run appears in two
-consecutive daily files.
+The OpenSprinkler controller stamps `/jl` log entries (`end_ts`) and compares the
+`start`/`end` query parameters in **local (Arizona) time expressed as epoch seconds**, i.e.
+the local wall clock read as if it were UTC.
+Read `end_ts` with `datetime.fromtimestamp(ts, tz=timezone.utc)` to get the local run time;
+converting it to `America/Phoenix` (as the code did until 2026-10-17) reports every run 7 h
+too early and moves the early-morning landscaping runs onto the previous calendar date.
+The farm programs run around 07:00 and 17:00 and the landscaping program around 05:00, as
+@gregcaporaso confirmed on 2026-10-17.
 
-`summarize.py` handles this by **deduplicating all log entries by `end_ts`** before
-aggregating.
+Evidence (2026-10-14 run): a fetch at 05:41 local returned the landscaping entry stamped
+05:30 but not its partner stamped 06:00, which had not finished yet; under the UTC reading
+both would have ended the previous evening.
+
+Until 2026-10-17 `fetch_log.py` built the window from the true UTC epoch of Arizona
+midnight, which the controller read as 07:00 local → 07:00 the next day.
+That is why consecutive daily files overlap (the same run appears in two files) and why the
+window looked like it was being ignored.
+`start`/`end` are honored at day granularity, so any past day can be re-fetched while the
+controller is reachable and still holds its log; the "rolling window" described in older
+notes does not exist.
+
+`summarize.py` still **deduplicates all log entries by `end_ts`** before aggregating.
 Each physical run has a unique `end_ts`; dedup gives exactly one entry per run.
-Runs are then assigned to the correct Arizona-local calendar date via their `end_ts`.
-
-Do not remove or weaken this deduplication — without it, all totals are inflated ~2×.
+Keep it: the data files fetched before the window fix overlap, and overlap is harmless
+only because of this.
 
 ## Log entry format (corrected 2026-08-11)
 
@@ -138,7 +151,8 @@ website template `layouts/water-systems/water-usage.html` (in the `website` repo
 ## Recovering lost irrigation logs (procedure used 2026-08-11)
 
 If the workflow fails after fetching but before committing, daily files are never written and that night's data is gone from the runner.
-`recover_missing.py` backfills such dates automatically on the next successful run, but only weather is fully recoverable that way — the WU history API is date-addressed, while `/jl` via OTC serves only a short rolling window of recent runs.
+`recover_missing.py` backfills such dates automatically on the next successful run.
+Both sources are date-addressed (see the clock section above), so this recovers irrigation as well as weather as long as the controller is reachable; the procedure below is for runs the controller can no longer serve (e.g. the 2026 auth outage, when the hash was wrong for five weeks).
 
 To recover older irrigation runs:
 
@@ -168,13 +182,50 @@ The 2026-07-28 → 2026-08-10 gap was recovered this way into `data/daily/2026-0
 
 ## Season start / end
 
-`SEASON_START = date(2026, 5, 25)` in both `fetch_log.py` and `summarize.py`.
-Update both if the season boundary changes.
+`SEASON_START` and `SEASON_END` are defined in both `fetch_log.py` and `summarize.py`
+(`summarize.py` stays importable without `requests`); `check_health.py` imports them from
+`fetch_log.py`.
+Update both files if a boundary changes.
 
-`SEASON_END` (in `fetch_log.py`, default `None`) is read only by `check_health.py`.
-The controller stays powered on over winter with its programs stopped, so once the last
-program is stopped set `SEASON_END` to that date to silence the "no runs logged" alert;
-set it back to `None` (and update `SEASON_START`) when the next season begins.
+The 2026 season is `2026-05-25` → `2026-10-09` (the farm programs' last run; the farm
+programs were disabled on 2026-10-09/10 and the landscaping program is disabled over winter
+as well).
+`summarize.py` ignores daily files and runs after `SEASON_END`, clips the last week's
+`week_end` to it, and writes `season_end` into `irrigation_summary.json` (the website shows
+"start to end" instead of "from start" when it is set).
+`check_health.py` skips every check once `SEASON_END` has passed, so a red run cannot come
+from the idle controller's cloud link dropping.
+
+### Winter mode (set 2026-10-17)
+
+With nothing in scope to log, the nightly workflow is disabled over winter rather than left
+running against an idle controller:
+
+```sh
+gh workflow disable fetch-and-deploy.yml --repo townsite-urban-farm/tuf-irrigation-data
+```
+
+Spring restart: set `SEASON_START` to the first watering day and `SEASON_END` back to `None`
+in both scripts, think about how `summarize.py` should treat the 2026 files (it currently
+filters by one season window), then
+`gh workflow enable fetch-and-deploy.yml --repo townsite-urban-farm/tuf-irrigation-data`.
+`recover_missing.py` will then back-fill every season day without a file, so the new
+`SEASON_START` must be set before enabling.
+
+## End-of-season report (farm stations only)
+
+```sh
+python3 scripts/summarize.py --zones 2,3 --out reports/season-2026-farm.csv
+```
+
+This regenerates all the usual outputs and additionally writes the all-weeks table for the
+listed zones, followed by one `Season total` row per zone (weather columns blank on those
+rows).
+`--out` defaults to `reports/all-weeks-zones-<indices>.csv`.
+When a selected zone has `crop_splits`, the per-crop breakdown for the selected zones is written alongside as `<out stem>-crops.csv`, also with `Season total` rows per crop.
+`reports/season-2026-grant.csv` and `reports/season-2026-grant-crops.csv` are the grant deliverables (`--zones 3`); the farm report's `-crops` companion holds the same zone 3 split.
+The deploy step does not copy this file to the website; add a `cp` line there if it should
+be downloadable.
 
 ## Failure notifications (added 2026-09-04)
 
@@ -184,9 +235,30 @@ Alerting therefore comes from a final `Check data health` step (`scripts/check_h
 that runs after both pushes and exits 1 when:
 
 - yesterday's daily file is missing, or its irrigation is null / not a list, or weather is null;
-- no irrigation run has been logged in the last 3 days while in season (see `SEASON_END`).
+- no irrigation run has been logged in the last 3 days.
 
+Both checks are skipped off season (see `SEASON_END`).
 A red run triggers GitHub's built-in "Run failed" email to the workflow actor.
+
+A null irrigation field means the OpenThings Cloud relay could not reach the controller on
+all three attempts: HTTP 404 is "device not connected", 408 is "connected but did not answer
+in time".
+This happened once in September and five times between 2026-10-04 and 2026-10-16, so the
+controller's cloud link was already flaky before the programs were disabled.
+Every such night healed itself on the next run because the window is date-addressed, so a
+single red run needs no action; check the next run first.
+To probe the controller without exposing secrets, run (token and hash from the password
+manager, never pasted into chat or committed):
+
+```sh
+curl -s -o /dev/null -w '%{http_code}\n' "https://cloud.openthings.io/forward/v1/${OTC_TOKEN}/jc?pw=${OS_PW_HASH}"
+```
+
+200 = online and answering, 404 = not connected to the cloud, 408 = connected but not
+responding.
+The same `/jc` request against the controller's LAN address (e.g. from the farm Pi) tells
+whether the controller is on the network at all; if the LAN answers and the cloud does not,
+a power cycle restores the cloud session.
 For `schedule` runs the actor is whoever last committed the workflow file, so the person
 who should receive alerts must be the one to commit changes to
 `.github/workflows/fetch-and-deploy.yml`.
@@ -205,9 +277,8 @@ Order: `recover_missing.py` → `fetch_log.py` → `summarize.py` → commit →
 (or where `irrigation.logs` is a controller error object rather than a list), and fetches
 any season date with no daily file at all (protects against runs that fail after fetching
 but before committing).
-For such backfilled dates, weather is fully recoverable (WU history API is date-addressed)
-but irrigation is limited to the `/jl` rolling window — older runs are lost unless
-recovered from the controller on the LAN, where `/jl` may honor `start`/`end`.
+Both sources are date-addressed, so backfilled dates are complete whenever the controller
+answers.
 
 The deploy runs only on the nightly `schedule` and manual `workflow_dispatch` — **not** on
 push. To deploy on demand: `gh workflow run fetch-and-deploy.yml`. The website is a Hugo
