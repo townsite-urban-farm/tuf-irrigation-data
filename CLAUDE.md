@@ -212,6 +212,18 @@ filters by one season window), then
 `recover_missing.py` will then back-fill every season day without a file, so the new
 `SEASON_START` must be set before enabling.
 
+## Committing locally while the workflow is enabled
+
+The workflow commits to `main` every night, so a local commit made while it is enabled is
+rejected on push once the scheduler has fired.
+Pull before committing, or disable the workflow first.
+If a rebase does conflict, every conflict is in a generated file (`irrigation_summary.json`,
+`reports/**.csv`): do not hand-merge, re-run `summarize.py` (with the `--zones` reports if
+they exist), `git add` the regenerated files, `git rm` any weekly file summarize no longer
+writes, then `GIT_EDITOR=true git rebase --continue` (2026-10-17).
+To regenerate a report without touching the working tree, copy `scripts/summarize.py`,
+`data/daily/`, and `zone_config.json` into a scratch directory and run it there.
+
 ## End-of-season report (farm stations only)
 
 ```sh
